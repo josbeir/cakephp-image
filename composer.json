@@ -1,0 +1,39 @@
+{
+	"name": "josbeir/image",
+	"description": "CakePHP 3.0 Image upload behavior",
+	"type": "cakephp-plugin",
+	"keywords": ["cakephp", "image"],
+	"homepage": "https://github.com/josbeir/Image",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Jasper Smet",
+			"homepage": "https://github.com/josbeir/image/graphs/contributors"
+		}
+	],
+	"extra": {
+        	"installer-name": "Image"
+    	},
+	"support": {
+		"issues": "https://github.com/josbeir/image/issues"
+	},
+	"require": {
+		"php": ">=5.4",
+		"cakephp/plugin-installer": "*",
+		"smottt/wideimage": "dev-master",
+		"cakephp/cakephp": "3.0.x-dev"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "*"
+	},
+	"autoload": {
+		"psr-4": {
+			"Image\\": "src"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Image\\Test\\": "tests"
+		}
+	}
+}
