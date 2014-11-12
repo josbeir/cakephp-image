@@ -4,15 +4,16 @@ Image behavior that works much like Cake's built in Translate Behavior by adding
 
 * Uploads can be either $_FILE based or just a string containing path. 'copy' or 'move_uploaded_file' is used accordingly.
 * Validating should be done by cake's nice validation options and is thereforce not included in the behavior itself.
+* Image presets are generated using [WideImage](https://github.com/smottt/WideImage). See the sourceforge [documentation](http://wideimage.sourceforge.net/) page.
 
 ### Notes
 The behavior is very much a work in progress and should not be considered stable in any way.
 
 ### Configuration parameters
-**fields**: Fields that should be checked for uploading, should be the name of the field as key and the type as value (many, one)
-**presets**: Array of presets containing a list of WideImage methods and their parameters
-**path**: The base path where the uploaded images should be stored
-**table**: The table name of for storing the image data (see Config/Schema/images.sql)
+* **fields**: Fields that should be checked for uploading, should be the name of the field as key and the type as value (many, one)
+* **presets**: Array of presets containing a list of WideImage methods and their parameters
+* **path**: The base path where the uploaded images should be stored
+* **table**: The table name of for storing the image data (see Config/Schema/images.sql)
 
 ### Usage
 
