@@ -8,6 +8,7 @@ use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use Cake\ORM\Query;
+use Cake\Collection\Collection;
 use WideImage\WideImage;
 use ArrayObject;
 
@@ -99,10 +100,11 @@ class ImageBehavior extends Behavior {
 			$contain[$field] = $conditions;
 		}
 
-		$query->contain($contain);
-		$query->formatResults(function($results) {
-			return $this->_mapResults($results);
-		}, $query::PREPEND);
+		return $query
+			->contain($contain)
+			->formatResults(function($results) {
+				return $this->_mapResults($results);
+			}, $query::PREPEND);
 	}
 
 /**
@@ -115,9 +117,10 @@ class ImageBehavior extends Behavior {
  * @return \Cake\ORM\Entity             [description]
  */
 	protected function _upload(Entity $entity, $fieldName, $fileName, $filePath, $copy = false) {
+		$data = [];
 
 		if (!file_exists($filePath)) {
-			return null;
+			return $data;
 		}
 
 		$alias = $this->_table->alias();
@@ -131,28 +134,16 @@ class ImageBehavior extends Behavior {
 
 		if ($existing || call_user_func_array($transferFn, [ $filePath, $fullPath ])) {
 			$file = new File($fullPath);
-
-			if ($existing) {
-				$entity = $this->_imagesTable->find()
-					->where(['model' => $alias, 'field' => $fieldName, 'filename' => $fileName ])
-					->first();
-
-			}
-
-			if (empty($entity)) {
-				$entity = $this->_imagesTable->newEntity([
-					'model' => $alias,
-					'field' => $fieldName,
-					'filename' => $fileName,
-					'size' => $file->size(),
-					'mime' => $file->mime()
-				]);
-			}
-
-			return $entity;
+			$data = [
+				'model' => $alias,
+				'field' => $fieldName,
+				'filename' => $fileName,
+				'size' => $file->size(),
+				'mime' => $file->mime()
+			];
 		}
 
-		return null;
+		return $data;
 	}
 
 /**
@@ -207,11 +198,17 @@ class ImageBehavior extends Behavior {
 
 			foreach ($fields as $field => $type) {
 				$name = $this->fieldName($field, false);
-				$row[$field] = $row[$name];
+				$image = isset($row[$name]) ? $row[$name] : null;
+
+				if ($image === null) {
+					unset($row[$name]);
+					continue;
+				}
+
+				$row[$field] = $image;
 
 				unset($row[$name]);
 			}
-
 			$row->clean();
 
 			return $row;
@@ -230,38 +227,40 @@ class ImageBehavior extends Behavior {
 		$alias = $this->_table->alias();
 
 		foreach ($fields as $fieldName => $fieldType) {
-			$imageEntities = [];
+			$uploadedImages = $entities = [];
 			$field = $entity->{$fieldName};
 			$field = $fieldType == 'one' ? [ $field ] : $field;
 
 			foreach ($field as $image) {
 				if (isset($image['tmp_name'])) { // server based file uploads
-					$imageEntities[] = $this->_upload($entity, $fieldName, $image['name'], $image['tmp_name'], false);
+					$uploadedImages[] = $this->_upload($entity, $fieldName, $image['name'], $image['tmp_name'], false);
 				} else { // any other 'path' based uploads
-					$imageEntities[] = $this->_upload($entity, $fieldName, $image, $image, true);
+					$uploadedImages[] = $this->_upload($entity, $fieldName, $image, $image, true);
 				}
 			}
 
-			// purge empty records
-			$imageEntities = array_filter($imageEntities);
+			$uploadedImages = array_filter($uploadedImages);
 
-			// make sure 'one' type fields always have only one record set.
-			if ($fieldType == 'one' && !$entity->isNew() && !empty($imageEntities)) {
-				$this->_imagesTable
-					->query()
-					->delete()
-					->where([
-						'id NOT IN'=> array_map(function($item) {
-							return $item->id;
-						}, $imageEntities),
-						'model' => $alias,
-						'field' => $fieldName,
-						'foreign_key' => $entity->id
-					])
-					->execute();
+			if (!empty($uploadedImages)) {
+				$preexisting = $this->_imagesTable->find()
+					->where(['model' => $alias, 'field' => $fieldName, 'foreign_key' => $entity->id ])
+					->bufferResults(false);
+
+				foreach ($preexisting as $index => $image) {
+					if (isset($uploadedImages[$index])) {
+						$entities[$index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$index]);
+					} else if ($fieldType == 'one') {
+						$this->_imagesTable->delete($image);
+					}
+				}
+
+				$new = array_diff_key($uploadedImages, $entities);
+				foreach ($new as $image) {
+					$entities[] = $this->_imagesTable->newEntity($image);
+				}
 			}
 
-			$entity->set('_images', $imageEntities);
+			$entity->set('_images', $entities);
 			$entity->dirty($fieldName, false);
 		}
 	}
