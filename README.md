@@ -60,8 +60,14 @@ $this->Image->render($entity->field, [ 'preset' => 'presetName' ]); // Preset
 $this->Image->render($entity->field, [ 'preset' => 'presetName', 'alt' => 'Cool image' ]); // Preset + image attributes
 ```
 
+### Shell
+Simple shell to re-generate all presets for given model
+
+```cli
+bin/cake image
+```
+
 ### Todo
 - Write some test cases
 - Write better documentation
-- Write shell te regenerate presets for all tables / specific table
 - Extend the helper to return only return the url etc...

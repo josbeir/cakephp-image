@@ -279,4 +279,12 @@ class ImageBehavior extends Behavior {
 
 		$entity->unsetProperty('_images');
 	}
+
+/**
+ * Return Images table object attached to current table
+ * @return Cake\ORM\Table Images table object
+ */
+	public function imagesTable() {
+		return $this->_imagesTable;
+	}
 }
