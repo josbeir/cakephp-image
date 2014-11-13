@@ -83,6 +83,8 @@ class ImageHelper extends Helper {
 			$table = TableRegistry::get($image->model);
 			$basePath = $table->behaviors()->Image->config('path');
 			$basePath = str_replace(WWW_ROOT, '/', $basePath);
+			$basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
+			$basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
 		}
 
 		return $this->paths[$image->model] = $basePath . DS . $image->model . DS;
