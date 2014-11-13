@@ -7,36 +7,68 @@ use Cake\ORM\TableRegistry;
 
 class ImageHelper extends Helper {
 
-	public $helpers = [ 'Url', 'Html' ];
+/**
+ * [$helpers description]
+ * @var [type]
+ */
+	public $helpers = [ 'Html' ];
 
-	public $paths = [ ];
+/**
+ * Paths cache by model
+ * @var array
+ */
+	protected $paths = [];
 
+/**
+ * [$_defaultConfig description]
+ * @var [type]
+ */
 	protected $_defaultConfig = [
-		'path' => null
+		'basePath' => null
 	];
 
-	public function render($image, array $options = []) {
+/**
+ * Render the image as an image tag
+ * @param  Cake\ORM\Entity $image
+ * @param  array $options Options are passed to HtmlHelper::image (except preset)
+ * @return strign Html image tag
+ */
+	public function render(Entity $image, array $options = []) {
 		if (empty($image)) {
 			return null;
 		}
 
-		$path = $this->basePath($image);
-
+		$preset = null;
 		if (isset($options['preset'])) {
-			$path .= $options['preset'] .'_';
+			$preset = $options['preset'];
+			unset($options['preset']);
 		}
 
-		$path .= $image->filename;
+		$url = $this->url($image, $preset);
 
-		unset($options['preset']);
+		return $this->Html->image($url, $options);
+	}
 
-		return $this->Html->image($path, $options);
+/**
+ * Return the image url
+ * @param  Cake\ORM\Entity $image
+ * @param  string $preset Optional name of the preset to return
+ * @return string Url of the image
+ */
+	public function url(Entity $image, $preset = null) {
+		$path = $this->basePath($image);
+
+		if (!empty($preset)) {
+			$path .= $preset .'_';
+		}
+
+		return $path . $image->filename;
 	}
 
 /**
  * Return directory where image is located for given entity
- * @param  Entity $image [description]
- * @return string        [description]
+ * @param  Cake\ORM\Entity $image
+ * @return string        Base path
  */
 	protected function basePath(Entity $image) {
 
@@ -44,7 +76,7 @@ class ImageHelper extends Helper {
 			return $this->paths[$image->model];
 		}
 
-		$basePath = $this->config('path');
+		$basePath = $this->config('basePath');
 
 		// use the path defined in the model's behavior
 		if (empty($path)) {
