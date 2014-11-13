@@ -20,8 +20,7 @@ class ImageShell extends Shell {
 		$parser
 			->addSubcommand('regenerate', [
 				'help' => 'Regenerate all presets for given Table',
-			])
-			->addArgument('table', [ 'help' => 'Name of the table' ]);
+			]);
 
 		return $parser;
 	}
@@ -35,6 +34,7 @@ class ImageShell extends Shell {
 	}
 
 	public function regenerate() {
+		$this->out('<info>Select the table you want to regenerate image presets for</info>');
 		$table = $this->getTable();
 
 		if (is_array($table)) {
@@ -91,7 +91,7 @@ class ImageShell extends Shell {
 
 		$selection = $this->in('Provide the name of the Table you want to use', null, 1);
 
-		if (isset($tables[$options[$selection]])) {
+		if (isset($options[$selection]) && isset($tables[$options[$selection]])) {
 			return $tables[$options[$selection]];
 		}
 

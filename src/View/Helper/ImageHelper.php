@@ -24,7 +24,7 @@ class ImageHelper extends Helper {
  * @var [type]
  */
 	protected $_defaultConfig = [
-		'basePath' => null
+		'base' => null
 	];
 
 /**
@@ -33,8 +33,8 @@ class ImageHelper extends Helper {
  * @param  array $options Options are passed to HtmlHelper::image (except preset)
  * @return strign Html image tag
  */
-	public function render(Entity $image, array $options = []) {
-		if (empty($image)) {
+	public function render($image, array $options = []) {
+		if (empty($image->filename)) {
 			return null;
 		}
 
@@ -55,7 +55,7 @@ class ImageHelper extends Helper {
  * @param  string $preset Optional name of the preset to return
  * @return string Url of the image
  */
-	public function url(Entity $image, $preset = null) {
+	public function url($image, $preset = null) {
 		$path = $this->basePath($image);
 
 		if (!empty($preset)) {
@@ -76,15 +76,17 @@ class ImageHelper extends Helper {
 			return $this->paths[$image->model];
 		}
 
-		$basePath = $this->config('basePath');
+		$basePath = $this->config('base');
 
 		// use the path defined in the model's behavior
 		if (empty($path)) {
 			$table = TableRegistry::get($image->model);
-			$basePath = $table->behaviors()->Image->config('path');
-			$basePath = str_replace(WWW_ROOT, '/', $basePath);
-			$basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
-			$basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
+			if ($table->hasBehavior('Image')) {
+				$basePath = $table->behaviors()->Image->config('path');
+				$basePath = str_replace(WWW_ROOT, '/', $basePath);
+				$basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
+				$basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
+			}
 		}
 
 		return $this->paths[$image->model] = $basePath . DS . $image->model . DS;

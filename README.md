@@ -10,7 +10,7 @@ Image behavior that works much like Cake's built in Translate Behavior by adding
 The behavior is very much a work in progress and should not be considered stable in any way.
 
 ### Configuration parameters
-* **fields**: Fields that should be checked for uploading, should be the name of the field as key and the type as value (many, one)
+* **fields**: Fields used for images, should be the name of the field as key and the type as value (many, one)
 * **presets**: Array of presets containing a list of WideImage methods and their parameters
 * **path**: The base path where the uploaded images should be stored
 * **table**: The table name of for storing the image data (see Config/Schema/images.sql)
@@ -59,6 +59,7 @@ I've included a basic helper to render the images in your templates.
 $this->Image->render($entity->field); // Original image
 $this->Image->render($entity->field, [ 'preset' => 'presetName' ]); // Preset
 $this->Image->render($entity->field, [ 'preset' => 'presetName', 'alt' => 'Cool image' ]); // Preset + image attributes
+$this->Image->url($entity->field, [ 'preset' => 'presetName' ]); // Returns the image path
 ```
 
 ### Shell
@@ -71,4 +72,3 @@ bin/cake image
 ### Todo
 - Write some test cases
 - Write better documentation
-- Extend the helper to return only return the url etc...
