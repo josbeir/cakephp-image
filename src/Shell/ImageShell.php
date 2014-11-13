@@ -6,6 +6,9 @@ use Cake\FileSystem\Folder;
 use Cake\Utility\Inflector;
 use Cake\ORM\TableRegistry;
 
+/**
+ * ImagesShell
+ */
 class ImageShell extends Shell {
 
 /**
@@ -31,35 +34,41 @@ class ImageShell extends Shell {
 		$this->regenerate();
 	}
 
+	public function regenerate() {
+		$table = $this->getTable();
+
+		if (is_array($table)) {
+			foreach ($table as $tableTable) {
+				$this->_regenerate($tableTable);
+			}
+		} else {
+			$this->_regenerate($table);
+		}
+	}
+
 /**
  * [regenerate description]
  * @return [type] [description]
  */
-	public function regenerate() {
-		$table = $this->getTable();
-
-		if (!$table->hasBehavior('Image')) {
-			return $this->out('<error>Table has no ImageBehavior attached</error>');
-		}
-
+	public function _regenerate($table) {
+		$alias = $table->alias();
 		$imagesTable = $table->imagesTable();
-
 		$images = $imagesTable->find()
 			->where(['model' => $table->alias() ]);
 
 		$total = $images->count();
-		$this->out(sprintf("<info>[PROCESSING]\t Regenerating presets for %s images</info>", $total), 0);
+		$this->out(sprintf("<info>[%s]\t Regenerating presets for %s images</info>", $alias, $total), 0);
 		$this->out('');
 
 		$x = 1;
 		foreach ($images as $image) {
 			$table->generatePresets($image);
-			$this->io()->overwrite(sprintf("<question>[WORKING]\t Creating presets... [%s/%s]</question>", $x, $total), 0);
+			$this->io()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
 			$x++;
 		}
 
 		$this->out('');
-		$this->out('<success>[FINISHED]</success>');
+		$this->out(sprintf("<success>[%s]\t FINISHED</success>", $alias));
 		$this->hr();
 	}
 
@@ -69,31 +78,43 @@ class ImageShell extends Shell {
  * @return Cake\ORM\Table
  */
 	protected function getTable() {
-		if (isset($this->args[0])) {
-			$table = TableRegistry::get($this->args[0]);
-		} else {
-			$x = 1;
-			$tables = [];
-			foreach ((new Folder(APP . 'Model' . DS . 'Table'))->find('.*.php') as $file) {
-				$table = str_replace('Table.php', '', $file);
-				$tableName = Inflector::camelize($table);
-				$tableTable = TableRegistry::get($tableName);
+		$tables = $this->getTables();
 
-				if ($tableTable->hasBehavior('Image')) {
-					$tables[$x] = $tableTable;
-					$this->out(sprintf('[%s] %s', $x, $table));
-					$x++;
-				}
-			}
+		$options = [ 1 => 'All tables' ];
+		foreach ($tables as $tableName => $table) {
+			$options[] = $tableName;
+		}
 
-			$table = $this->in('Provide the name of the Table you want to use', null, 1);
+		foreach ($options as $option => $name) {
+			$this->out(sprintf('[%s] %s', $option, $name));
+		}
 
-			if (is_numeric($table) && isset($tables[$table])) {
-				$table = $tables[$table];
+		$selection = $this->in('Provide the name of the Table you want to use', null, 1);
+
+		if (isset($tables[$options[$selection]])) {
+			return $tables[$options[$selection]];
+		}
+
+		return $tables;
+	}
+
+/**
+ * Return list of all tables where the imagebehavior is attached to.
+ * @return array
+ */
+	protected function getTables() {
+		$tables = [];
+		foreach ((new Folder(APP . 'Model' . DS . 'Table'))->find('.*.php') as $file) {
+			$table = str_replace('Table.php', '', $file);
+			$tableName = Inflector::camelize($table);
+			$tableTable = TableRegistry::get($tableName);
+
+			if ($tableTable->hasBehavior('Image')) {
+				$tables[$tableName] = $tableTable;
 			}
 		}
 
-		return $table;
+		return $tables;
 	}
 
 }
