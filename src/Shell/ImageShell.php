@@ -62,7 +62,7 @@ class ImageShell extends Shell {
 
 		$x = 1;
 		foreach ($images as $image) {
-			$table->generatePresets($image);
+			$table->generatePresets($image, true);
 			$this->io()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
 			$x++;
 		}

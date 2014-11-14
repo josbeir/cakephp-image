@@ -8,7 +8,6 @@ use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
 use Cake\ORM\TableRegistry;
 use Cake\ORM\Query;
-use Cake\Collection\Collection;
 use WideImage\WideImage;
 use ArrayObject;
 
@@ -151,14 +150,18 @@ class ImageBehavior extends Behavior {
  * @param  [type] $image [description]
  * @return [type]        [description]
  */
-	public function generatePresets($image) {
+	public function generatePresets($image, $force = false) {
 		$basePath = $this->config('path') . DS . $image->model . DS;
 		$imagePath = $basePath . $image->filename;
 
 		foreach($this->config('presets') as $preset => $options) {
-			$wImage = WideImage::load($imagePath);
 			$destination = $basePath . $preset .'_'. $image->filename;
 
+			if (file_exists($destination) && !$force) {
+				continue;
+			}
+
+			$wImage = WideImage::load($imagePath);
 			foreach ($options as $action => $actionOptions) {
 				$wImage = call_user_func_array([ $wImage, $action ], $actionOptions);
 			}
@@ -233,24 +236,29 @@ class ImageBehavior extends Behavior {
 
 			foreach ($field as $image) {
 				if (isset($image['tmp_name'])) { // server based file uploads
-					$uploadedImages[] = $this->_upload($entity, $fieldName, $image['name'], $image['tmp_name'], false);
+					$uploadeImage = $this->_upload($entity, $fieldName, $image['name'], $image['tmp_name'], false);
 				} else { // any other 'path' based uploads
-					$uploadedImages[] = $this->_upload($entity, $fieldName, $image, $image, true);
+					$uploadeImage = $this->_upload($entity, $fieldName, $image, $image, true);
 				}
+
+				$uploadedImages[] = $uploadeImage;
 			}
 
 			$uploadedImages = array_filter($uploadedImages);
 
 			if (!empty($uploadedImages)) {
-				$preexisting = $this->_imagesTable->find()
-					->where(['model' => $alias, 'field' => $fieldName, 'foreign_key' => $entity->id ])
-					->bufferResults(false);
 
-				foreach ($preexisting as $index => $image) {
-					if (isset($uploadedImages[$index])) {
-						$entities[$index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$index]);
-					} else if ($fieldType == 'one') {
-						$this->_imagesTable->delete($image);
+				if (!$entity->isNew()) {
+					$preexisting = $this->_imagesTable->find()
+						->where(['model' => $alias, 'field' => $fieldName, 'foreign_key' => $entity->id ])
+						->bufferResults(false);
+
+					foreach ($preexisting as $index => $image) {
+						if (isset($uploadedImages[$index])) {
+							$entities[$index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$index]);
+						} else if ($fieldType == 'one') {
+							$this->_imagesTable->delete($image);
+						}
 					}
 				}
 
