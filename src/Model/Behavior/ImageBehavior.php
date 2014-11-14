@@ -24,7 +24,6 @@ class ImageBehavior extends Behavior {
  * @var [type]
  */
 	public $_defaultConfig = [
-		//'implementedFinders' => ['images' => 'findImages'],
 		'fields' => [],
 		'presets' => [],
 		'path' => null,
@@ -89,7 +88,7 @@ class ImageBehavior extends Behavior {
  * @param  Query  $query [description]
  * @return [type]        [description]
  */
-	public function beforeFind(Event $event, Query $query) {
+	public function beforeFind(Event $event, Query $query, $primary) {
 		$fields = $this->config('fields');
 		$alias = $this->_table->alias();
 		$contain = $conditions = [];
@@ -108,14 +107,13 @@ class ImageBehavior extends Behavior {
 
 /**
  * [_upload description]
- * @param  Entity  $entity    [description]
- * @param  string  $fieldName [description]
+ * @param  string  $fieldName Name of the field
  * @param  string  $fileName  [description]
  * @param  string  $filePath  [description]
  * @param  boolean $copy      [description]
  * @return \Cake\ORM\Entity             [description]
  */
-	protected function _upload(Entity $entity, $fieldName, $fileName, $filePath, $copy = false) {
+	protected function _upload($fileName, $filePath, $copy = false) {
 		$data = [];
 
 		if (!file_exists($filePath)) {
@@ -134,8 +132,6 @@ class ImageBehavior extends Behavior {
 		if ($existing || call_user_func_array($transferFn, [ $filePath, $fullPath ])) {
 			$file = new File($fullPath);
 			$data = [
-				'model' => $alias,
-				'field' => $fieldName,
 				'filename' => $fileName,
 				'size' => $file->size(),
 				'mime' => $file->mime()
@@ -228,26 +224,26 @@ class ImageBehavior extends Behavior {
 	public function beforeSave(Event $event, Entity $entity, ArrayObject $options) {
 		$fields = $this->config('fields');
 		$alias = $this->_table->alias();
+		$entities = [];
 
 		foreach ($fields as $fieldName => $fieldType) {
-			$uploadedImages = $entities = [];
+			$uploadedImages = [];
 			$field = $entity->{$fieldName};
 			$field = $fieldType == 'one' ? [ $field ] : $field;
 
 			foreach ($field as $image) {
 				if (isset($image['tmp_name'])) { // server based file uploads
-					$uploadeImage = $this->_upload($entity, $fieldName, $image['name'], $image['tmp_name'], false);
+					$uploadeImage = $this->_upload($image['name'], $image['tmp_name'], false);
 				} else { // any other 'path' based uploads
-					$uploadeImage = $this->_upload($entity, $fieldName, $image, $image, true);
+					$uploadeImage = $this->_upload($image, $image, true);
 				}
 
-				$uploadedImages[] = $uploadeImage;
+				if ($uploadeImage) {
+					$uploadedImages[] = $uploadeImage + [ 'model' => $alias, 'field' => $fieldName ];
+				}
 			}
 
-			$uploadedImages = array_filter($uploadedImages);
-
 			if (!empty($uploadedImages)) {
-
 				if (!$entity->isNew()) {
 					$preexisting = $this->_imagesTable->find()
 						->where(['model' => $alias, 'field' => $fieldName, 'foreign_key' => $entity->id ])
@@ -268,9 +264,10 @@ class ImageBehavior extends Behavior {
 				}
 			}
 
-			$entity->set('_images', $entities);
 			$entity->dirty($fieldName, false);
 		}
+
+		$entity->set('_images', $entities);
 	}
 
 /**

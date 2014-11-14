@@ -70,7 +70,7 @@ class ImageHelper extends Helper {
  * @param  Cake\ORM\Entity $image
  * @return string        Base path
  */
-	protected function basePath(Entity $image) {
+	protected function basePath($image) {
 
 		if (isset($this->paths[$image->model])) {
 			return $this->paths[$image->model];
