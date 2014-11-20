@@ -1,4 +1,15 @@
 <?php
+/**
+ * Image, image behavior
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Jasper Smet
+ * @link          https://github.com/josbeir/image
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ */
 namespace Image\View\Helper;
 
 use Cake\View\Helper;

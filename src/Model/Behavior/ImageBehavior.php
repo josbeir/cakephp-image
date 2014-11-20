@@ -1,4 +1,15 @@
 <?php
+/**
+ * Image, image behavior
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Jasper Smet
+ * @link          https://github.com/josbeir/image
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ */
 namespace Image\Model\Behavior;
 
 use Cake\ORM\Behavior;
@@ -75,7 +86,7 @@ class ImageBehavior extends Behavior {
 			'foreignKey' => 'foreign_key',
 			'strategy' => 'subquery',
 			'propertyName' => '_images',
-			'dependent' => true,
+			'dependent' => false,
 			'conditions' => [
 				$table .'.model' => $alias
 			]
@@ -84,11 +95,20 @@ class ImageBehavior extends Behavior {
 
 /**
  * [beforeFind description]
- * @param  Event  $event [description]
- * @param  Query  $query [description]
- * @return [type]        [description]
+ * @param  Event  $event   [description]
+ * @param  Query  $query   [description]
+ * @param  [type] $options [description]
+ * @return [type]          [description]
+ *
+ * ### Options
+ * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
+ * speed up overall performance
  */
-	public function beforeFind(Event $event, Query $query, $primary) {
+	public function beforeFind(Event $event, Query $query, $options = []) {
+		if (isset($options['images']) && !$options['images']) {
+			return $query;
+		}
+
 		$fields = $this->config('fields');
 		$alias = $this->_table->alias();
 		$contain = $conditions = [];
@@ -106,6 +126,38 @@ class ImageBehavior extends Behavior {
 	}
 
 /**
+ * [_mapResults description]
+ * @param  [type] $results [description]
+ * @return [type]          [description]
+ */
+	protected function _mapResults($results) {
+		$fields = $this->config('fields');
+
+		return $results->map(function ($row) use($fields) {
+			$hydrated = !is_array($row);
+
+			foreach ($fields as $field => $type) {
+				$name = $this->fieldName($field, false);
+				$image = isset($row[$name]) ? $row[$name] : null;
+
+				if ($image === null) {
+					unset($row[$name]);
+					continue;
+				}
+
+				$row[$field] = $image;
+				unset($row[$name]);
+			}
+
+			if ($hydrated) {
+				$row->clean();
+			}
+
+			return $row;
+		});
+	}
+
+/**
  * [_upload description]
  * @param  string  $fieldName Name of the field
  * @param  string  $fileName  [description]
@@ -120,8 +172,7 @@ class ImageBehavior extends Behavior {
 			return $data;
 		}
 
-		$alias = $this->_table->alias();
-		$basePath = $this->config('path') . DS . $alias;
+		$basePath = $this->basePath();
 		$pathinfo = pathinfo($fileName);
 		$fileName = md5_file($filePath) .'.'. $pathinfo['extension'];
 		$fullPath = $basePath . DS . $fileName;
@@ -142,12 +193,12 @@ class ImageBehavior extends Behavior {
 	}
 
 /**
- * Generate all presets for given image entity
+ * Generate all presets for given image entity, built so it can be used as an external method
  * @param  [type] $image [description]
  * @return [type]        [description]
  */
 	public function generatePresets($image, $force = false) {
-		$basePath = $this->config('path') . DS . $image->model . DS;
+		$basePath = $this->basePath($image->model) . DS;
 		$imagePath = $basePath . $image->filename;
 
 		foreach($this->config('presets') as $preset => $options) {
@@ -169,58 +220,13 @@ class ImageBehavior extends Behavior {
 	}
 
 /**
- * [fieldName description]
- * @param  [type]  $field        [description]
- * @param  boolean $includeAlias [description]
- * @return [type]                [description]
- */
-	protected function fieldName($field, $includeAlias = true) {
-		$alias = $this->_table->alias();
-		$name = $field . '_image';
-
-		if ($includeAlias) {
-			$name = $alias . '_' . $name;
-		}
-
-		return $name;
-	}
-
-/**
- * [_mapResults description]
- * @param  [type] $results [description]
- * @return [type]          [description]
- */
-	protected function _mapResults($results) {
-		$fields = $this->config('fields');
-
-		return $results->map(function ($row) use($fields) {
-
-			foreach ($fields as $field => $type) {
-				$name = $this->fieldName($field, false);
-				$image = isset($row[$name]) ? $row[$name] : null;
-
-				if ($image === null) {
-					unset($row[$name]);
-					continue;
-				}
-
-				$row[$field] = $image;
-
-				unset($row[$name]);
-			}
-			$row->clean();
-
-			return $row;
-		});
-	}
-
-/**
- * [beforeSave description]
- * @param  Event       $event   [description]
- * @param  Entity      $entity  [description]
+ * Implementation of the beforesave event, handles uploading / saving and overwriting of image records
+ * @param  \Cake\Event\Event       $event   [description]
+ * @param  \Cake\ORM\Entity      $entity  [description]
  * @param  ArrayObject $options [description]
  * @return [type]               [description]
  */
+
 	public function beforeSave(Event $event, Entity $entity, ArrayObject $options) {
 		$fields = $this->config('fields');
 		$alias = $this->_table->alias();
@@ -278,11 +284,93 @@ class ImageBehavior extends Behavior {
  * @return [type]               [description]
  */
 	public function afterSave(Event $event, Entity $entity, ArrayObject $options) {
-		foreach ($entity->_images as $imageEntity) {
-			$this->generatePresets($imageEntity);
+		if (!empty($entity->_images)) {
+			foreach ($entity->_images as $imageEntity) {
+				$this->generatePresets($imageEntity);
+			}
+
+			$entity->unsetProperty('_images');
+		}
+	}
+
+/**
+ * [afterDelete description]
+ * @param  Event       $event   [description]
+ * @param  Entity      $entity  [description]
+ * @param  ArrayObject $options [description]
+ * @return [type]               [description]
+ */
+	public function afterDelete(Event $event, Entity $entity, ArrayObject $options) {
+		$fields = $this->config('fields');
+
+		foreach ($fields as $fieldName => $fieldType) {
+			if (isset($entity->{$fieldName})) {
+				$images = $entity->{$fieldName};
+				if (!is_array($entity->{$fieldName})) {
+					$images = [ $entity->{$fieldName} ];
+				}
+
+				foreach ($images as $imageEntity) {
+					$this->deleteImageEntity($imageEntity);
+				}
+			}
+		}
+	}
+
+/**
+ * Safely remove the image entity and all its presets
+ * The physical image files are only removed after making sure that the same file is not used in other records
+ * @param  \Cake\ORM\Entity $imageEntity [description]
+ * @return bool
+ */
+	public function deleteImageEntity($imageEntity) {
+		$shared = $this->_imagesTable->find()
+			->where([
+				'foreign_key !=' => $imageEntity->foreign_key,
+				'model' => $imageEntity->model,
+				'filename' => $imageEntity->filename
+			]);
+
+		if (!$shared->count()) {
+			$basePath = $this->basePath();
+
+			(new File($basePath . DS . $imageEntity->filename))->delete();
+
+			foreach($this->config('presets') as $preset => $options) {
+				(new File($basePath . DS . $preset .'_'. $imageEntity->filename))->delete();
+			}
 		}
 
-		$entity->unsetProperty('_images');
+		return $this->_imagesTable->delete($imageEntity);
+	}
+
+/**
+ * Return the correct fieldname used in relations and other parts
+ * @param  string  $field   fieldname
+ * @param  bool $includeAlias wheter to include the alias
+ * @return string
+ */
+	protected function fieldName($field, $includeAlias = true) {
+		$alias = $this->_table->alias();
+		$name = $field . '_image';
+
+		if ($includeAlias) {
+			$name = $alias . '_' . $name;
+		}
+
+		return $name;
+	}
+
+/**
+ * Return basepath for current model or overridable by the `alias` parameter
+ * @param string $alias Optional parameter to override the alias returned in the basePath
+ * @return string
+ */
+	public function basePath($alias = null) {
+		if (!$alias) {
+			$alias = $this->_table->alias();
+		}
+		return $this->config('path') . DS . $this->_table->alias();
 	}
 
 /**
