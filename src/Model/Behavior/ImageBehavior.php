@@ -209,8 +209,12 @@ class ImageBehavior extends Behavior {
 			}
 
 			$wImage = WideImage::load($imagePath);
-			foreach ($options as $action => $actionOptions) {
-				$wImage = call_user_func_array([ $wImage, $action ], $actionOptions);
+			foreach ($options as $action => $params) {
+				if (is_callable($params)) {
+					$wImage = $params($wImage);
+				} else {
+					$wImage = call_user_func_array([ $wImage, $action ], $params);
+				}
 			}
 
 			$wImage->saveToFile($destination);
