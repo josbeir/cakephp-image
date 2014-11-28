@@ -169,7 +169,7 @@ class ImageBehavior extends Behavior {
 		$data = [];
 
 		if (!file_exists($filePath)) {
-			return $data;
+			//return $data;
 		}
 
 		$basePath = $this->basePath();
@@ -204,7 +204,7 @@ class ImageBehavior extends Behavior {
 		foreach($this->config('presets') as $preset => $options) {
 			$destination = $basePath . $preset .'_'. $image->filename;
 
-			if (file_exists($destination) && !$force) {
+			if (!$force && file_exists($destination)) {
 				continue;
 			}
 
@@ -242,13 +242,13 @@ class ImageBehavior extends Behavior {
 			$field = $fieldType == 'one' ? [ $field ] : $field;
 
 			foreach ($field as $image) {
-				if (isset($image['tmp_name'])) { // server based file uploads
+				if (!empty($image['tmp_name'])) { // server based file uploads
 					$uploadeImage = $this->_upload($image['name'], $image['tmp_name'], false);
-				} else { // any other 'path' based uploads
+				} elseif (is_string($image)) { // any other 'path' based uploads
 					$uploadeImage = $this->_upload($image, $image, true);
 				}
 
-				if ($uploadeImage) {
+				if (!empty($uploadeImage)) {
 					$uploadedImages[] = $uploadeImage + [ 'model' => $alias, 'field' => $fieldName ];
 				}
 			}
