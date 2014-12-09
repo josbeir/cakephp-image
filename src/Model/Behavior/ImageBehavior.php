@@ -211,7 +211,7 @@ class ImageBehavior extends Behavior {
 			$wImage = WideImage::load($imagePath);
 			foreach ($options as $action => $params) {
 				if (is_callable($params)) {
-					$wImage = $params($wImage);
+					$wImage = $params($wImage, $imagePath);
 				} else {
 					$wImage = call_user_func_array([ $wImage, $action ], $params);
 				}
