@@ -37,6 +37,7 @@ class ImageBehavior extends Behavior {
 	public $_defaultConfig = [
 		'fields' => [],
 		'presets' => [],
+		'quality' => null,
 		'path' => null,
 		'table' => 'images'
 	];
@@ -217,7 +218,7 @@ class ImageBehavior extends Behavior {
 				}
 			}
 
-			$wImage->saveToFile($destination);
+			$wImage->saveToFile($destination, $this->config('quality'));
 		}
 
 		return true;
