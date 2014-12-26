@@ -80,7 +80,7 @@ class ImageBehavior extends Behavior {
 					$name . '.field' => $field,
 				]
 			]);
-		}
+		}	
 
 		$this->_table->hasMany($table, [
 			'foreignKey' => 'foreign_key',
@@ -234,6 +234,9 @@ class ImageBehavior extends Behavior {
 	public function beforeSave(Event $event, Entity $entity, ArrayObject $options) {
 		$fields = $this->config('fields');
 		$alias = $this->_table->alias();
+		
+		$newOptions = [$this->_imagesTable->alias() => ['validate' => false]];
+		$options['associated'] = $newOptions + $options['associated'];
 		$entities = [];
 
 		foreach ($fields as $fieldName => $fieldType) {
