@@ -31,6 +31,11 @@ class ImageShell extends Shell {
 		$parser
 			->addSubcommand('regenerate', [
 				'help' => 'Regenerate all presets for given Table',
+			])
+			->addOption('force', [
+				'help' => 'Force re-generation of existing presets',
+				'short' => 'f',
+				'default' => false
 			]);
 
 		return $parser;
@@ -73,7 +78,7 @@ class ImageShell extends Shell {
 
 		$x = 1;
 		foreach ($images as $image) {
-			$table->generatePresets($image, true);
+			$table->generatePresets($image, $this->params['force']);
 			$this->io()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
 			$x++;
 		}
