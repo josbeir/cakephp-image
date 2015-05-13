@@ -76,17 +76,21 @@ class ImageBehavior extends Behavior {
 				'foreignKey' => 'foreign_key',
 				'joinType' => 'LEFT',
 				'propertyName' => $this->fieldName($field, false),
+                'order' => [
+                    $name . '.field_index' => 'ASC'
+                ],
 				'conditions' => [
 					$name . '.model' => $alias,
 					$name . '.field' => $field,
 				]
 			]);
-		}	
+		}
 
 		$this->_table->hasMany($table, [
 			'foreignKey' => 'foreign_key',
 			'strategy' => 'subquery',
 			'propertyName' => '_images',
+            //'order' => [ $table . '.field_index' => 'ASC' ],
 			'dependent' => false,
 			'conditions' => [
 				$table .'.model' => $alias
@@ -235,7 +239,7 @@ class ImageBehavior extends Behavior {
 	public function beforeSave(Event $event, Entity $entity, ArrayObject $options) {
 		$fields = $this->config('fields');
 		$alias = $this->_table->alias();
-		
+
 		$newOptions = [$this->_imagesTable->alias() => ['validate' => false]];
 		$options['associated'] = $newOptions + $options['associated'];
 		$entities = [];
@@ -245,7 +249,13 @@ class ImageBehavior extends Behavior {
 			$field = $entity->{$fieldName};
 			$field = $fieldType == 'one' ? [ $field ] : $field;
 
-			foreach ($field as $image) {
+            if (!$field) {
+                continue;
+            }
+
+			foreach ($field as $index => $image) {
+                $uploadeImage = null;
+
 				if (!empty($image['tmp_name'])) { // server based file uploads
 					$uploadeImage = $this->_upload($image['name'], $image['tmp_name'], false);
 				} elseif (is_string($image)) { // any other 'path' based uploads
@@ -253,7 +263,11 @@ class ImageBehavior extends Behavior {
 				}
 
 				if (!empty($uploadeImage)) {
-					$uploadedImages[] = $uploadeImage + [ 'model' => $alias, 'field' => $fieldName ];
+					$uploadedImages[$index] = $uploadeImage + [
+                        'field_index' => $index,
+                        'model' => $alias,
+                        'field' => $fieldName
+                    ];
 				}
 			}
 
@@ -261,11 +275,12 @@ class ImageBehavior extends Behavior {
 				if (!$entity->isNew()) {
 					$preexisting = $this->_imagesTable->find()
 						->where(['model' => $alias, 'field' => $fieldName, 'foreign_key' => $entity->id ])
+                        ->order(['field_index' => 'ASC' ])
 						->bufferResults(false);
 
-					foreach ($preexisting as $index => $image) {
-						if (isset($uploadedImages[$index])) {
-							$entities[$index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$index]);
+					foreach ($preexisting as $image) {
+						if (isset($uploadedImages[$image->field_index])) {
+							$entities[$image->field_index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$image->field_index]);
 						} else if ($fieldType == 'one') {
 							$this->_imagesTable->delete($image);
 						}
@@ -351,6 +366,12 @@ class ImageBehavior extends Behavior {
 
 		return $this->_imagesTable->delete($imageEntity);
 	}
+
+    public function deleteImage($image_id) {
+        $image = $this->_imagesTable->get($image_id);
+
+        return $this->deleteImageEntity($image);
+    }
 
 /**
  * Return the correct fieldname used in relations and other parts

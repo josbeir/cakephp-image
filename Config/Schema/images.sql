@@ -1,5 +1,6 @@
 CREATE TABLE `images` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `field_index` int(11) NOT NULL,
   `model` varchar(255) NOT NULL,
   `field` varchar(255) NOT NULL,
   `foreign_key` int(11) NOT NULL,
