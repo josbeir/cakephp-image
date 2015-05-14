@@ -90,8 +90,3 @@ Simple shell to re-generate all presets for given model
 
 ```cli
 bin/cake image
-```
-
-### Todo
-- Write some test cases
-- Write better documentation
