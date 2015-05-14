@@ -6,7 +6,7 @@ CakePHP 3.0 Image upload behavior
 Image behavior that works much like Cake's built in Translate Behavior by adding fields with image data to every entity the table returns.
 
 * Uploads can be either $_FILE based or just a string containing path. 'copy' or 'move_uploaded_file' is used accordingly.
-* Validating should be done by cake's nice validation options and is thereforce not included in the behavior itself.
+* Validating should be done by cake's nice validation options and is therefore not included in the behavior itself.
 * Image presets are generated using [WideImage](https://github.com/smottt/WideImage). See the sourceforge [documentation](http://wideimage.sourceforge.net/) page.
 
 ### Notes
@@ -24,7 +24,7 @@ Install using composer
 
 ```javascript
 "require": {
-	"josbeir/Image": "dev-master"
+	"josbeir/Image": "~0.2"
 }
 ```
 
