@@ -1,5 +1,8 @@
 CakePHP 3.0 Image upload behavior
 =====
+
+[![Build Status](https://travis-ci.org/josbeir/image.svg?branch=master)](https://travis-ci.org/josbeir/image)
+
 Image behavior that works much like Cake's built in Translate Behavior by adding fields with image data to every entity the table returns.
 
 * Uploads can be either $_FILE based or just a string containing path. 'copy' or 'move_uploaded_file' is used accordingly.

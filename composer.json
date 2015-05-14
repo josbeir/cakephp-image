@@ -12,8 +12,8 @@
 		}
 	],
 	"extra": {
-        	"installer-name": "Image"
-    	},
+			"installer-name": "Image"
+		},
 	"support": {
 		"issues": "https://github.com/josbeir/image/issues"
 	},
@@ -24,7 +24,8 @@
 		"cakephp/cakephp": "~3.0"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "*"
+		"phpunit/phpunit": "*",
+		"cakephp/cakephp-codesniffer": "dev-master"		
 	},
 	"autoload": {
 		"psr-4": {
@@ -33,6 +34,7 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
+			"Cake\\Test\\": "./vendor/cakephp/cakephp/tests",
 			"Image\\Test\\": "tests"
 		}
 	}

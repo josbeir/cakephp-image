@@ -45,7 +45,7 @@ class ImageHelper extends Helper
      * @param  array $options Options are passed to HtmlHelper::image (except preset)
      * @return strign Html image tag
      */
-    public function render($image, array $options = array)
+    public function render($image, array $options = [])
     {
         if (empty($image->filename)) {
             return null;
