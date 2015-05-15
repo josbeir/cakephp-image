@@ -28,11 +28,16 @@ Install using composer
 }
 ```
 
-And run `php composer.phar update`
+And run `php composer.phar install`
 
 Enable the plugin by adding it to bootstrap.php
 ```php
 Plugin::load('Image');
+```
+
+Init the database table by using cakephp's migrations
+```cli
+bin/cake migrations migrate -p Image
 ```
 
 Enable the image behavior by adding it to the Table's initialize hook

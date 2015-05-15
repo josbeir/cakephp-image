@@ -3,6 +3,7 @@ namespace Image\Test\TestCase\Model\Behavior;
 
 use Cake\Collection\Collection;
 use Cake\Core\Plugin;
+use Cake\Filesystem\Folder;
 use Cake\ORM\Behavior\TranslateBehavior;
 use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
@@ -23,8 +24,14 @@ class ImageBehaviorTest extends TestCase
     {
         parent::tearDown();
         TableRegistry::clear();
+
+        (new Folder(TMP . 'tests' . DS . 'image'))->delete();
     }
 
+    /**
+     * Test finding multiple images
+     * @return void
+     */
     public function testFindImageOne()
     {
         $table = TableRegistry::get('Articles');
@@ -59,6 +66,10 @@ class ImageBehaviorTest extends TestCase
         $this->assertSame($expected, $result);
     }
 
+    /**
+     * Test finding a many field
+     * @return void
+     */
     public function testFindImageMany()
     {
         $table = TableRegistry::get('Articles');
@@ -132,7 +143,7 @@ class ImageBehaviorTest extends TestCase
 
         $item = $table->find()->first();
         $item->set('image', [
-            'name' => 'test.jpg',
+            'name' => 'test.png',
             'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png'
         ]);
 
@@ -146,13 +157,50 @@ class ImageBehaviorTest extends TestCase
             'model' => 'Articles',
             'field' => 'image',
             'foreign_key' => 1,
-            'filename' => 'df047416c612a9f13a3565ea6f0c38f6.jpg',
+            'filename' => 'df047416c612a9f13a3565ea6f0c38f6.png',
             'size' => 132137,
             'mime' => 'image/png'
         ];
 
         $this->assertEquals(1, $item->get('id'));
         $this->assertSame($expected, $image);
+        $this->assertFileExists(TMP . 'tests' . DS . 'image' . DS . 'Articles' . DS . $item->get('image')->get('filename'));
+    }
+
+    /**
+     * Test adding an image using just the original path (using copy)
+     */
+    public function testCopy()
+    {
+        $table = TableRegistry::get('Articles');
+        $table->addBehavior('Image.Image', [
+            'path' => TMP . 'tests' . DS . 'image',
+            'fields' => [
+                'image' => 'one'
+            ]
+        ]);
+
+        $item = $table->find()->first();
+        $item->set('image', Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png');
+
+        $table->save($item);
+        $item = $table->find()->first();
+        $image = $item->get('image')->toArray();
+
+        $expected = [
+            'id' => 5,
+            'field_index' => 0,
+            'model' => 'Articles',
+            'field' => 'image',
+            'foreign_key' => 1,
+            'filename' => 'df047416c612a9f13a3565ea6f0c38f6.png',
+            'size' => 132137,
+            'mime' => 'image/png'
+        ];
+
+        $this->assertEquals(1, $item->get('id'));
+        $this->assertSame($expected, $image);
+        $this->assertFileExists(TMP . 'tests' . DS . 'image' . DS . 'Articles' . DS . $item->get('image')->get('filename'));
     }
 
     /**
@@ -173,15 +221,15 @@ class ImageBehaviorTest extends TestCase
         $item = $table->find()->first();
         $item->set('images', [
             0 => [
-                'name' => 'test.jpg',
+                'name' => 'test.png',
                 'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png'
             ],
             1 => [
-                'name' => 'simpsons.jpg',
+                'name' => 'simpsons.png',
                 'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'simpsons.png'
             ],
             2 => [
-                'name' => 'gucci.jpg',
+                'name' => 'gucci.png',
                 'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'gucci.png'
             ]
         ]);
@@ -204,7 +252,7 @@ class ImageBehaviorTest extends TestCase
                     'model' => 'Articles',
                     'field' => 'images',
                     'foreign_key' => 1,
-                    'filename' => 'df047416c612a9f13a3565ea6f0c38f6.jpg',
+                    'filename' => 'df047416c612a9f13a3565ea6f0c38f6.png',
                     'size' => 132137,
                     'mime' => 'image/png'
                 ],
@@ -214,7 +262,7 @@ class ImageBehaviorTest extends TestCase
                     'model' => 'Articles',
                     'field' => 'images',
                     'foreign_key' => 1,
-                    'filename' => 'fba1943f40ec92eddd81e0688a255a43.jpg',
+                    'filename' => 'fba1943f40ec92eddd81e0688a255a43.png',
                     'size' => 33628,
                     'mime' => 'image/png'
                 ],
@@ -224,7 +272,7 @@ class ImageBehaviorTest extends TestCase
                     'model' => 'Articles',
                     'field' => 'images',
                     'foreign_key' => 1,
-                    'filename' => '0409095d5904edde1065f313018d7518.jpg',
+                    'filename' => '0409095d5904edde1065f313018d7518.png',
                     'size' => 119448,
                     'mime' => 'image/png'
                 ]
@@ -232,5 +280,40 @@ class ImageBehaviorTest extends TestCase
         ];
 
         $this->assertSame($expected, $item);
+    }
+
+    public function testDeleteImageById()
+    {
+        $table = TableRegistry::get('Articles');
+        $table->addBehavior('Image.Image', [
+            'fields' => [
+                'image' => 'one'
+            ]
+        ]);
+
+        $record = $table->find()->first()->image;
+        $return = $table->deleteImage($record->get('id'));
+        $record = $table->find()->first()->image;
+
+        $this->assertTrue($return);
+        $this->assertNull($record);
+    }
+
+    /**
+     * Test if Table::imagesTable() returns an instance of Cake\ORM\Table
+     * @return [type] [description]
+     */
+    public function testReturnImagesTable()
+    {
+        $table = TableRegistry::get('Articles');
+        $table->addBehavior('Image.Image', [
+            'fields' => [
+                'image' => 'one'
+            ]
+        ]);
+
+        $table = $table->imagesTable();
+
+        $this->assertEquals(get_class($table), 'Cake\ORM\Table');
     }
 }
