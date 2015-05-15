@@ -225,16 +225,16 @@ class ImageBehavior extends Behavior
                 continue;
             }
 
-            $wImage = $manager->make($imagePath);
+            $image = $manager->make($imagePath);
             foreach ($options as $action => $params) {
                 if (is_callable($params)) {
-                    $wImage = $params($wImage, $imagePath);
+                    $image = $params($image, $imagePath);
                 } else {
-                    $wImage = call_user_func_array([ $wImage, $action ], $params);
+                    $image = call_user_func_array([ $image, $action ], $params);
                 }
             }
 
-            $wImage->save($destination, $this->config('quality'));
+            $image->save($destination, $this->config('quality'));
         }
 
         return true;
@@ -363,7 +363,8 @@ class ImageBehavior extends Behavior
     {
         $shared = $this->_imagesTable->find()
             ->where([
-                'foreign_key !=' => $imageEntity->foreign_key,
+                'id !=' => $imageEntity->id,
+                'field_index !=' => $imageEntity->field_index,
                 'model' => $imageEntity->model,
                 'filename' => $imageEntity->filename
             ]);
