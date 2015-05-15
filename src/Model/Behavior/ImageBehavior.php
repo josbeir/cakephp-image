@@ -20,7 +20,7 @@ use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
 use Cake\ORM\TableRegistry;
-use WideImage\WideImage;
+use Intervention\Image\ImageManager;
 
 class ImageBehavior extends Behavior
 {
@@ -38,9 +38,12 @@ class ImageBehavior extends Behavior
     public $_defaultConfig = [
         'fields' => [],
         'presets' => [],
-        'quality' => null,
+        'quality' => 75,
         'path' => null,
-        'table' => 'images'
+        'table' => 'images',
+        'manager' => [
+            'driver' => 'imagick'
+        ]
     ];
 
     /**
@@ -211,6 +214,7 @@ class ImageBehavior extends Behavior
      */
     public function generatePresets($image, $force = false)
     {
+        $manager = new ImageManager($this->config('manager'));
         $basePath = $this->basePath($image->model) . DS;
         $imagePath = $basePath . $image->filename;
 
@@ -221,7 +225,7 @@ class ImageBehavior extends Behavior
                 continue;
             }
 
-            $wImage = WideImage::load($imagePath);
+            $wImage = $manager->make($imagePath);
             foreach ($options as $action => $params) {
                 if (is_callable($params)) {
                     $wImage = $params($wImage, $imagePath);
@@ -230,7 +234,7 @@ class ImageBehavior extends Behavior
                 }
             }
 
-            $wImage->saveToFile($destination, $this->config('quality'));
+            $wImage->save($destination, $this->config('quality'));
         }
 
         return true;

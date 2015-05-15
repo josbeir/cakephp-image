@@ -20,12 +20,12 @@
 	"require": {
 		"php": ">=5.4",
 		"cakephp/plugin-installer": "*",
-		"smottt/wideimage": "dev-master",
+		"intervention/image": "~2.0",
 		"cakephp/cakephp": "~3.0"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "*",
-		"cakephp/cakephp-codesniffer": "dev-master"		
+		"cakephp/cakephp-codesniffer": "dev-master"
 	},
 	"autoload": {
 		"psr-4": {
