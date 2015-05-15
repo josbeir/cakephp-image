@@ -44,12 +44,6 @@ Enable the image behavior by adding it to the Table's initialize hook
 	public function initialize(array $config) {
 		$this->addBehavior('Image.Image', [
 			'path' => WWW_ROOT . 'assets',
-			'presets' => [
-				'overview' => [
-					'resize' => [ 200, 200, 'outside', 'fill' ],
-					'crop' => [ 'center', 'center', 200, 200 ]
-				]
-			],
 			'fields' => [
 				'images' => 'many',
 				'main' => 'one'
