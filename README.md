@@ -15,6 +15,7 @@ The behavior is very much a work in progress and should not be considered stable
 * **presets**: Array of presets containing a list of Intervention/Image methods and their parameters, can also be a callable function with the image object passed
 * **path**: The base path where the uploaded images should be stored
 * **table**: The table name of for storing the image data (see Config/Schema/images.sql)
+* **manager**: Settings for Intervention\Image\ImageManager (defaults to driver : imagick)
 
 ### Usage
 

@@ -64,7 +64,7 @@ class ImageBehavior extends Behavior
     /**
      * [setupAssociations description]
      * @param  [type] $table  [description]
-     * @param  [type] $fields [description]
+     * @"param  ["type] $fields [description]
      * @return void
      */
     protected function _setupAssociations($table, $fields)
@@ -225,16 +225,16 @@ class ImageBehavior extends Behavior
                 continue;
             }
 
-            $image = $manager->make($imagePath);
+            $intImage = $manager->make($imagePath);
             foreach ($options as $action => $params) {
                 if (is_callable($params)) {
-                    $image = $params($image, $imagePath);
+                    $intImage = $params($intImage, $imagePath);
                 } else {
-                    $image = call_user_func_array([ $image, $action ], $params);
+                    $intImage = call_user_func_array([ $intImage, $action ], $params);
                 }
             }
 
-            $image->save($destination, $this->config('quality'));
+            $intImage->save($destination, $this->config('quality'));
         }
 
         return true;
