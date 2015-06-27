@@ -104,7 +104,6 @@ class ImageBehavior extends Behavior
             'foreignKey' => 'foreign_key',
             'strategy' => 'subquery',
             'propertyName' => '_images',
-            //'order' => [ $table . '.field_index' => 'ASC' ],
             'dependent' => false,
             'conditions' => [
                 $table . '.model' => $alias
@@ -146,6 +145,19 @@ class ImageBehavior extends Behavior
     }
 
     /**
+     * [setEntitySource description]
+     * @param [type] $entity [description]
+     */
+    protected function setEntitySource(&$entity)
+    {
+        if ($entity instanceOf Entity) {
+            $entity->source($this->_table->registryAlias());
+        }
+
+        return $entity;
+    }
+
+    /**
      * [_mapResults description]
      * @param  [type] $results [description]
      * @return [type]          [description]
@@ -162,9 +174,15 @@ class ImageBehavior extends Behavior
                 $image = isset($row[$name]) ? $row[$name] : null;
 
                 // make sure we set the correct registry alias for the entity so
-                // we can access the entity's repository from the helper
+                // we can access the entity's repository from the ImageHelper
                 if (!empty($image)) {
-                    $image->source($this->_table->registryAlias());
+                    if (is_array($image)) {
+                        foreach ($image as &$image_entity) {
+                            $this->setEntitySource($image_entity);
+                        }
+                    } else {
+                        $this->setEntitySource($image);
+                    }
                 }
 
                 if ($image === null) {
