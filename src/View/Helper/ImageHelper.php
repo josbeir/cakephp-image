@@ -94,7 +94,7 @@ class ImageHelper extends Helper
 
         // use the path defined in the model's behavior
         if (empty($path)) {
-            $table = TableRegistry::get($image->model);
+            $table = TableRegistry::get($image->source());
             if ($table->hasBehavior('Image')) {
                 $basePath = $table->behaviors()->Image->config('path');
                 $basePath = str_replace(WWW_ROOT, '/', $basePath);

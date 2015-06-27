@@ -74,11 +74,19 @@ class ImageBehavior extends Behavior
         foreach ($fields as $field => $type) {
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
             $name = $this->_fieldName($field);
-            $target = TableRegistry::get($name);
-            $target->table($table);
+
+            if (!TableRegistry::exists($name)) {
+                $fieldTable = TableRegistry::get($name, [
+                    'className' => $table,
+                    'alias' => $name,
+                    'table' => $this->_imagesTable->table()
+                ]);
+            } else {
+                $fieldTable = TableRegistry::get($name);
+            }
 
             $this->_table->{$assocType}($name, [
-                'targetTable' => $target,
+                'targetTable' => $fieldTable,
                 'foreignKey' => 'foreign_key',
                 'joinType' => 'LEFT',
                 'propertyName' => $this->_fieldName($field, false),
@@ -152,6 +160,10 @@ class ImageBehavior extends Behavior
             foreach ($fields as $field => $type) {
                 $name = $this->_fieldName($field, false);
                 $image = isset($row[$name]) ? $row[$name] : null;
+
+                // make sure we set the correct registry alias for the entity so
+                // we can access the entity's repository from the helper
+                $image->source($this->_table->registryAlias());
 
                 if ($image === null) {
                     unset($row[$name]);
