@@ -16,13 +16,13 @@ use Cake\Console\Shell;
 use Cake\FileSystem\Folder;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
+use Cake\Core\Plugin;
 
 /**
  * ImagesShell
  */
 class ImageShell extends Shell
 {
-
     /**
      * [getOptionParser description]
      * @return [type] [description]
@@ -33,6 +33,10 @@ class ImageShell extends Shell
         $parser
             ->addSubcommand('regenerate', [
                 'help' => 'Regenerate all presets for given Table',
+            ])
+            ->addOption('plugin', [
+                'help' => 'Plugin name to scan models for',
+                'short' => 'p'
             ])
             ->addOption('force', [
                 'help' => 'Force re-generation of existing presets',
@@ -131,11 +135,23 @@ class ImageShell extends Shell
      */
     protected function _getTables()
     {
+        $modelPath = 'Model' . DS . 'Table';
+        $plugin = null;
+        if (isset($this->params['plugin'])) {
+            $pluginPath = Plugin::path($this->params['plugin']);
+            if (!empty($pluginPath)) {
+                $modelPath = $pluginPath . 'src' . DS . $modelPath;
+                $plugin = $this->params['plugin'] .'.';
+            }
+        } else {
+            $modelPath = APP . $modelPath;
+        }
+
         $tables = [];
-        foreach ((new Folder(APP . 'Model' . DS . 'Table'))->find('.*.php') as $file) {
+        foreach ((new Folder($modelPath))->find('.*.php') as $file) {
             $table = str_replace('Table.php', '', $file);
             $tableName = Inflector::camelize($table);
-            $tableTable = TableRegistry::get($tableName);
+            $tableTable = TableRegistry::get($plugin . $tableName);
 
             if ($tableTable->hasBehavior('Image')) {
                 $tables[$tableName] = $tableTable;
