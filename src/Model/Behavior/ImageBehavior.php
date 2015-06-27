@@ -163,7 +163,9 @@ class ImageBehavior extends Behavior
 
                 // make sure we set the correct registry alias for the entity so
                 // we can access the entity's repository from the helper
-                $image->source($this->_table->registryAlias());
+                if (!empty($image)) {
+                    $image->source($this->_table->registryAlias());
+                }
 
                 if ($image === null) {
                     unset($row[$name]);
@@ -229,6 +231,10 @@ class ImageBehavior extends Behavior
         $manager = new ImageManager($this->config('manager'));
         $basePath = $this->basePath($image->model) . DS;
         $imagePath = $basePath . $image->filename;
+
+        if (!is_file($imagePath)) {
+            return false;
+        }
 
         foreach ($this->config('presets') as $preset => $options) {
             $destination = $basePath . $preset . '_' . $image->filename;
