@@ -321,8 +321,13 @@ class ImageBehavior extends Behavior
 
             if (!empty($uploadedImages)) {
                 if (!$entity->isNew()) {
+                    $imagesTableAlias = $this->_imagesTable->alias();
                     $preexisting = $this->_imagesTable->find()
-                        ->where(['model' => $alias, 'field' => $_fieldName, 'foreign_key' => $entity->id ])
+                        ->where([
+                            'model' => $alias,
+                            'field' => $_fieldName,
+                            'foreign_key' => $entity->{$this->_table->primaryKey()}
+                        ])
                         ->order(['field_index' => 'ASC' ]);
 
                     foreach ($preexisting as $image) {
