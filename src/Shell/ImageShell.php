@@ -13,10 +13,10 @@
 namespace Image\Shell;
 
 use Cake\Console\Shell;
+use Cake\Core\Plugin;
 use Cake\FileSystem\Folder;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
-use Cake\Core\Plugin;
 
 /**
  * ImagesShell
@@ -141,7 +141,7 @@ class ImageShell extends Shell
             $pluginPath = Plugin::path($this->params['plugin']);
             if (!empty($pluginPath)) {
                 $modelPath = $pluginPath . 'src' . DS . $modelPath;
-                $plugin = $this->params['plugin'] .'.';
+                $plugin = $this->params['plugin'] . '.';
             }
         } else {
             $modelPath = APP . $modelPath;

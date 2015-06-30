@@ -148,9 +148,9 @@ class ImageBehavior extends Behavior
      * [setEntitySource description]
      * @param [type] $entity [description]
      */
-    protected function setEntitySource(&$entity)
+    protected function _setEntitySource(&$entity)
     {
-        if ($entity instanceOf Entity) {
+        if ($entity instanceof Entity) {
             $entity->source($this->_table->registryAlias());
         }
 
@@ -177,11 +177,11 @@ class ImageBehavior extends Behavior
                 // we can access the entity's repository from the ImageHelper
                 if (!empty($image)) {
                     if (is_array($image)) {
-                        foreach ($image as &$image_entity) {
-                            $this->setEntitySource($image_entity);
+                        foreach ($image as &$imageEntity) {
+                            $this->_setEntitySource($imageEntity);
                         }
                     } else {
-                        $this->setEntitySource($image);
+                        $this->_setEntitySource($image);
                     }
                 }
 
