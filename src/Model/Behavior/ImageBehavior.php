@@ -69,7 +69,7 @@ class ImageBehavior extends Behavior
      */
     protected function _setupAssociations($table, $fields)
     {
-        $alias = $this->_table->alias();
+        $alias = $this->_table->registryAlias();
 
         foreach ($fields as $field => $type) {
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
@@ -129,7 +129,6 @@ class ImageBehavior extends Behavior
         }
 
         $fields = $this->config('fields');
-        $alias = $this->_table->alias();
         $contain = $conditions = [];
 
         foreach ($fields as $field => $type) {
@@ -286,7 +285,7 @@ class ImageBehavior extends Behavior
     public function beforeSave(Event $event, Entity $entity, ArrayObject $options)
     {
         $fields = $this->config('fields');
-        $alias = $this->_table->alias();
+        $alias = $this->_table->registryAlias();
 
         $newOptions = [$this->_imagesTable->alias() => ['validate' => false]];
         $options['associated'] = $newOptions + $options['associated'];

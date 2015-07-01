@@ -91,18 +91,18 @@ class ImageHelper extends Helper
         }
 
         $basePath = $this->config('base');
+        $table = TableRegistry::get($image->model);
 
-        // use the path defined in the model's behavior
-        if (empty($path)) {
-            $table = TableRegistry::get($image->source());
-            if ($table->hasBehavior('Image')) {
-                $basePath = $table->behaviors()->Image->config('path');
-                $basePath = str_replace(WWW_ROOT, '/', $basePath);
-                $basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
-                $basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
-            }
+        if ($table->hasBehavior('Image')) {
+            $model = $table->alias();
+            $basePath = $table->behaviors()->Image->config('path');
+            $basePath = str_replace(WWW_ROOT, '/', $basePath);
+            $basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
+            $basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
+
+            $basePath = $this->paths[$image->model] = $basePath . DS . $table->alias() . DS;
         }
 
-        return $this->paths[$image->model] = $basePath . DS . $image->model . DS;
+        return $basePath;
     }
 }
