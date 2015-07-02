@@ -38,9 +38,18 @@ class ImageShell extends Shell
                 'help' => 'Plugin name to scan models for',
                 'short' => 'p'
             ])
+            ->addOption('id', [
+                'help' => 'Pass to generate for an individual record',
+                'short' => 'i'
+            ])
+            ->addOption('table', [
+                'help' => 'Set the table',
+                'short' => 't'
+            ])
             ->addOption('force', [
                 'help' => 'Force re-generation of existing presets',
                 'short' => 'f',
+                'boolean' => true,
                 'default' => false
             ]);
 
@@ -84,7 +93,11 @@ class ImageShell extends Shell
         $alias = $table->alias();
         $imagesTable = $table->imagesTable();
         $images = $imagesTable->find()
-            ->where(['model' => $table->alias() ]);
+            ->where(['model' => $table->registryAlias() ]);
+
+        if (isset($this->params['id'])) {
+            $images->andWhere(['foreign_key' => $this->params['id']]);
+        }
 
         $total = $images->count();
         $this->out(sprintf("<info>[%s]\t Regenerating presets for %s images</info>", $alias, $total), 0);
@@ -120,7 +133,13 @@ class ImageShell extends Shell
             $this->out(sprintf('[%s] %s', $option, $name));
         }
 
-        $selection = $this->in('Provide the name of the Table you want to use', null, 1);
+        if (isset($this->params['table'])) {
+            $selection = array_search($this->params['table'], $options);
+        }
+
+        if (!$selection) {
+            $selection = $this->in('Provide the name of the Table you want to use', null, 1);
+        }
 
         if (isset($options[$selection]) && isset($tables[$options[$selection]])) {
             return $tables[$options[$selection]];
