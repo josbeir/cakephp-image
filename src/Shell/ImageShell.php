@@ -123,21 +123,21 @@ class ImageShell extends Shell
     protected function _getTable()
     {
         $tables = $this->_getTables();
-
+        $selection = null;
         $options = [ 1 => 'All tables' ];
+
         foreach ($tables as $tableName => $table) {
             $options[] = $tableName;
         }
 
-        foreach ($options as $option => $name) {
-            $this->out(sprintf('[%s] %s', $option, $name));
-        }
-
-        if (isset($this->params['table'])) {
+        if (!empty($this->params['table'])) {
             $selection = array_search($this->params['table'], $options);
         }
 
         if (!$selection) {
+            foreach ($options as $option => $name) {
+                $this->out(sprintf('[%s] %s', $option, $name));
+            }
             $selection = $this->in('Provide the name of the Table you want to use', null, 1);
         }
 
