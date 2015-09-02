@@ -46,6 +46,13 @@ class ImageBehavior extends Behavior
         ]
     ];
 
+    protected $_mimeTypes = [
+        'image/jpg',
+        'image/jpeg',
+        'image/gif',
+        'image/png'
+    ];
+
     /**
      * [initialize description]
      * @param  array  $config [description]
@@ -213,8 +220,8 @@ class ImageBehavior extends Behavior
     {
         $data = [];
 
-        if (!file_exists($filePath)) {
-            //return $data;
+        if (!file_exists($filePath) || !$this->_isImage($filePath)) {
+            return $data;
         }
 
         $basePath = $this->basePath();
@@ -235,6 +242,19 @@ class ImageBehavior extends Behavior
         }
 
         return $data;
+    }
+
+    /**
+     * Check if given path is an image
+     * @param  string  $path path of the image
+     * @return boolean       true on success
+     */
+    protected function _isImage($path)
+    {
+        $file = new File($path);
+        $mime = $file->mime();
+
+        return in_array($mime, $this->_mimeTypes);
     }
 
     /**
