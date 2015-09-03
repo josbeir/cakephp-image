@@ -64,8 +64,11 @@ $this->addBehavior('Image.Image', [
 		'overview' => [
 			'resize' => [ 200, 200 ], // $image->resize(200, 200);
 			'crop' => [ 150, 150] // $image->crop(150,150);
-			'canvas' => function($image) { // you can use callback functions for more advanced stuff
+			'canvas' => function($image) {
+			 	// you can use callback functions for more advanced stuff
 				// do some fancy stuff here
+				
+				return $image;
 			},
 		]
 	],

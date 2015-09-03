@@ -247,7 +247,7 @@ class ImageBehavior extends Behavior
     /**
      * Check if given path is an image
      * @param  string  $path path of the image
-     * @return boolean       true on success
+     * @return bool true on success
      */
     protected function _isImage($path)
     {
