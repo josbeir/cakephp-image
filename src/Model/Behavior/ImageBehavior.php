@@ -173,8 +173,6 @@ class ImageBehavior extends Behavior
         $fields = $this->config('fields');
 
         return $results->map(function ($row) use ($fields) {
-            $hydrated = !is_array($row);
-
             foreach ($fields as $field => $type) {
                 $name = $this->_fieldName($field, false);
                 $image = isset($row[$name]) ? $row[$name] : null;
@@ -200,7 +198,7 @@ class ImageBehavior extends Behavior
                 unset($row[$name]);
             }
 
-            if ($hydrated) {
+            if ($row instanceof Entity) {
                 $row->clean();
             }
 
@@ -247,7 +245,7 @@ class ImageBehavior extends Behavior
     /**
      * Check if given path is an image
      * @param  string  $path path of the image
-     * @return bool true on success
+     * @return boolean       true on success
      */
     protected function _isImage($path)
     {
