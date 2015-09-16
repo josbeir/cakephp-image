@@ -143,36 +143,7 @@ class ImageBehavior extends Behavior
             $contain[$field] = $conditions;
         }
 
-        return $query
-            ->contain($contain)
-            ->formatResults(function ($results) {
-                return $this->_mapResults($results);
-            }, $query::PREPEND);
-    }
-
-    /**
-     * [setEntitySource description]
-     * @param [type] $entity [description]
-     */
-    protected function _setEntitySource(&$entity)
-    {
-        if ($entity instanceof Entity) {
-            $entity->source($this->_table->registryAlias());
-        }
-
-        return $entity;
-    }
-
-    /**
-     * [_mapResults description]
-     * @param  [type] $results [description]
-     * @return [type]          [description]
-     */
-    protected function _mapResults($results)
-    {
-        $fields = $this->config('fields');
-
-        return $results->map(function ($row) use ($fields) {
+        $mapper = function ($row, $key, $mapReduce) use ($fields) {
             foreach ($fields as $field => $type) {
                 $name = $this->_fieldName($field, false);
                 $image = isset($row[$name]) ? $row[$name] : null;
@@ -202,10 +173,32 @@ class ImageBehavior extends Behavior
                 $row->clean();
             }
 
-            return $row;
-        });
+            $mapReduce->emitIntermediate($row, $key);
+        };
+
+        $reducer = function ($items, $key, $mapReduce) {
+            if (isset($items[0])) {
+                $mapReduce->emit($items[0], $key);
+            }
+        };
+
+        return $query
+            ->contain($contain)
+            ->mapReduce($mapper, $reducer);
     }
 
+    /**
+     * [setEntitySource description]
+     * @param [type] $entity [description]
+     */
+    protected function _setEntitySource(&$entity)
+    {
+        if ($entity instanceof Entity) {
+            $entity->source($this->_table->registryAlias());
+        }
+
+        return $entity;
+    }
 
     /**
      * [_upload description]
