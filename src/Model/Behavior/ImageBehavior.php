@@ -287,79 +287,97 @@ class ImageBehavior extends Behavior
     }
 
     /**
-     * Implementation of the beforesave event, handles uploading / saving and overwriting of image records
-     * @param  \Cake\Event\Event       $event   [description]
-     * @param  \Cake\ORM\Entity      $entity  [description]
-     * @param  ArrayObject $options [description]
-     * @return void
-     */
-    public function beforeSave(Event $event, Entity $entity, ArrayObject $options)
-    {
-        $fields = $this->config('fields');
-        $alias = $this->_table->registryAlias();
+		 * Vlastní implementace beforeSave z pluginu
+		 *
+		 * @param Event       $event
+		 * @param Entity      $entity
+		 * @param ArrayObject $options
+		 */
+		public function beforeSave(Event $event, Entity $entity, ArrayObject $options) { //TODO kontrolovat jestli se to fakt nahrává
+			$fields = $this->config('fields');
+			$alias  = $this->_table->registryAlias();
 
-        $newOptions = [$this->_imagesTable->alias() => ['validate' => false]];
-        $options['associated'] = $newOptions + $options['associated'];
-        $entities = [];
+			$newOptions            = [$this->_imagesTable->alias() => ['validate' => false]];
+			$options['associated'] = $newOptions + $options['associated'];
+			$entities              = [];
 
-        foreach ($fields as $_fieldName => $fieldType) {
-            $uploadedImages = [];
-            $field = $entity->{$_fieldName};
-            $field = $fieldType == 'one' ? [ $field ] : $field;
+			foreach ($fields as $_fieldName => $fieldType) {
+				$uploadedImages = [];
+				$field          = $entity->{$_fieldName};
+				$field          = $fieldType == 'one' ? [$field] : $field;
 
-            if (!$field) {
-                continue;
-            }
+				if (isset($field['id'])) { //Úprava existujícího obrázku
+					$field           = array_filter($field, 'strlen');
+					$image           = $this->_imagesTable->get($field['id']);
+					$image->modified = Time::now();
+					$entities[]      = $this->_imagesTable->patchEntity($image, $field);
+				} else if($field !== null) { //Nativní chování, podle toho jestli existuje field index
+					foreach ($field as $index => $image) {
+						$uploadedImage = null;
 
-            foreach ($field as $index => $image) {
-                $uploadeImage = null;
+						if (!empty($image['tmp_name'])) { // server based file uploads
+							$uploadedImage = $this->_upload($image['name'], $image['tmp_name'], false);
+						} elseif (is_string($image)) { // any other 'path' based uploads
+							$uploadedImage = $this->_upload($image, $image, true);
+						}
 
-                if (!empty($image['tmp_name'])) { // server based file uploads
-                    $uploadeImage = $this->_upload($image['name'], $image['tmp_name'], false);
-                } elseif (is_string($image)) { // any other 'path' based uploads
-                    $uploadeImage = $this->_upload($image, $image, true);
-                }
+						if (!empty($uploadedImage)) {
+							$uploadedImages[$index] = $uploadedImage + [
+									'field_index' => $index,
+									'model'       => $alias,
+									'field'       => $_fieldName,
+									'modified'    => Time::now()
+								];
+							if (isset($field['extra_data']) && is_array($field['extra_data'])) {
+								$uploadedImages[$index] = array_merge($field['extra_data'], $uploadedImages[$index]);
+							}
+						}
+					}
 
-                if (!empty($uploadeImage)) {
-                    $uploadedImages[$index] = $uploadeImage + [
-                        'field_index' => $index,
-                        'model' => $alias,
-                        'field' => $_fieldName
-                    ];
-                }
-            }
+					if (!empty($uploadedImages)) {
+						if ($this->config('pile')) { //Pokud se mají obrázky nakládat místo přepisování TODO saveStrategy v modelu?
+							$query         = $this->_imagesTable->find();
+							$maxFieldIndex = $query->select(['field_index' => $query->func()->max('field_index')])->first()->field_index;
+							foreach ($uploadedImages as $image) {
+								$image['field_index'] = ++$maxFieldIndex;
+								$image['created']     = Time::now();
+								$entities[]           = $this->_imagesTable->newEntity($image);
+							}
+						} else {
+							if (!$entity->isNew()) {
+								$preexisting = $this->_imagesTable->find()
+									->where([
+										'model'       => $alias,
+										'field'       => $_fieldName,
+										'foreign_key' => $entity->{$this->_table->primaryKey()}
+									])
+									->order(['field_index' => 'ASC']);
 
-            if (!empty($uploadedImages)) {
-                if (!$entity->isNew()) {
-                    $imagesTableAlias = $this->_imagesTable->alias();
-                    $preexisting = $this->_imagesTable->find()
-                        ->where([
-                            'model' => $alias,
-                            'field' => $_fieldName,
-                            'foreign_key' => $entity->{$this->_table->primaryKey()}
-                        ])
-                        ->order(['field_index' => 'ASC' ]);
+								foreach ($preexisting as $image) {
+									if (isset($uploadedImages[$image->field_index])) {
+										$entities[$image->field_index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$image->field_index]);
+									} elseif ($fieldType == 'one') {
+										$this->_imagesTable->delete($image);
+									}
+								}
+							}
 
-                    foreach ($preexisting as $image) {
-                        if (isset($uploadedImages[$image->field_index])) {
-                            $entities[$image->field_index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$image->field_index]);
-                        } elseif ($fieldType == 'one') {
-                            $this->_imagesTable->delete($image);
-                        }
-                    }
-                }
+							$new = array_diff_key($uploadedImages, $entities);
+							foreach ($new as $image) {
+								$image['created'] = Time::now();
+								$entities[]       = $this->_imagesTable->newEntity($image);
+							}
+						}
 
-                $new = array_diff_key($uploadedImages, $entities);
-                foreach ($new as $image) {
-                    $entities[] = $this->_imagesTable->newEntity($image);
-                }
-            }
+					}
 
-            $entity->dirty($_fieldName, false);
-        }
+					$entity->dirty($_fieldName, false);
+				}
 
-        $entity->set('_images', $entities);
-    }
+
+			}
+			$entity->set('_images', $entities);
+		}
 
     /**
      * [afterSave description]
