@@ -13,28 +13,25 @@
 namespace Image\Model\Behavior;
 
 use ArrayObject;
+use Cake\Collection\Iterator\MapReduce;
 use Cake\Event\Event;
 use Cake\Filesystem\File;
 use Cake\Filesystem\Folder;
+use Cake\I18n\Time;
 use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
+use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Intervention\Image\ImageManager;
 
 class ImageBehavior extends Behavior
 {
 
-    /**
-     * [$_imagesTable description]
-     * @var [type]
-     */
+	/* @var $_imagesTable Table */
     protected $_imagesTable;
 
-    /**
-     * [$_defaultConfig description]
-     * @var [type]
-     */
+
     public $_defaultConfig = [
         'fields' => [],
         'presets' => [],
@@ -53,11 +50,7 @@ class ImageBehavior extends Behavior
         'image/png'
     ];
 
-    /**
-     * [initialize description]
-     * @param  array  $config [description]
-     * @return void
-     */
+
     public function initialize(array $config)
     {
         $this->_imagesTable = TableRegistry::get($this->config('table'));
@@ -68,12 +61,7 @@ class ImageBehavior extends Behavior
         );
     }
 
-    /**
-     * [setupAssociations description]
-     * @param  [type] $table  [description]
-     * @"param  ["type] $fields [description]
-     * @return void
-     */
+
     protected function _setupAssociations($table, $fields)
     {
         $alias = $this->_table->registryAlias();
@@ -118,17 +106,19 @@ class ImageBehavior extends Behavior
         ]);
     }
 
-    /**
-     * [beforeFind description]
-     * @param  Event  $event   [description]
-     * @param  Query  $query   [description]
-     * @param  [type] $options [description]
-     * @return [type]          [description]
-     *
-     * ### Options
-     * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
-     * speed up overall performance
-     */
+	/**
+	 * [beforeFind description]
+	 *
+	 * @param  Event $event [description]
+	 * @param  Query $query [description]
+	 * @param array  $options
+	 *
+	 * @return $this|array|Query [type]          [description]
+	 *
+	 * ### Options
+	 * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
+	 * speed up overall performance
+	 */
     public function beforeFind(Event $event, Query $query, $options = [])
     {
         if (isset($options['images']) && !$options['images']) {
@@ -143,7 +133,12 @@ class ImageBehavior extends Behavior
             $contain[$field] = $conditions;
         }
 
-        $mapper = function ($row, $key, $mapReduce) use ($fields) {
+		/**
+		 * @param $row
+		 * @param $key
+		 * @param $mapReduce MapReduce
+		 */
+		$mapper = function ($row, $key, $mapReduce) use ($fields) {
             foreach ($fields as $field => $type) {
                 $name = $this->_fieldName($field, false);
                 $image = isset($row[$name]) ? $row[$name] : null;
@@ -176,7 +171,12 @@ class ImageBehavior extends Behavior
             $mapReduce->emitIntermediate($row, $key);
         };
 
-        $reducer = function ($items, $key, $mapReduce) {
+		/**
+		 * @param $items
+		 * @param $key
+		 * @param $mapReduce MapReduce
+		 */
+		$reducer = function ($items, $key, $mapReduce) {
             if (isset($items[0])) {
                 $mapReduce->emit($items[0], $key);
             }
@@ -219,7 +219,7 @@ class ImageBehavior extends Behavior
         $pathinfo = pathinfo($fileName);
         $fileName = md5_file($filePath) . '.' . $pathinfo['extension'];
         $fullPath = $basePath . DS . $fileName;
-        $folder = new Folder($basePath, true, 0777);
+        new Folder($basePath, true, 0777);
         $transferFn = $copy || !is_uploaded_file($filePath) ? 'copy' : 'move_uploaded_file';
         $existing = file_exists($fullPath);
 
@@ -496,7 +496,7 @@ class ImageBehavior extends Behavior
 
     /**
      * Return Images table object attached to current table
-     * @return Cake\ORM\Table Images table object
+     * @return Table
      */
     public function imagesTable()
     {
