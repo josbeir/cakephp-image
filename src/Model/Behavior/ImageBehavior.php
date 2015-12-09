@@ -85,7 +85,7 @@ class ImageBehavior extends Behavior
                 'foreignKey' => 'foreign_key',
                 'joinType' => 'LEFT',
                 'propertyName' => $this->_fieldName($field, false),
-                'order' => [
+                'sort' => [
                     $name . '.field_index' => 'ASC'
                 ],
                 'conditions' => [
