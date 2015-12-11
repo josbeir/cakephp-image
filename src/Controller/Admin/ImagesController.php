@@ -1,5 +1,8 @@
 <?php
-	namespace Image\Controller;
+	namespace Image\Controller\Admin;
+
+
+	use Image\Controller\AppController;
 
 	class ImagesController extends AppController {
 
@@ -10,12 +13,12 @@
 		 */
 		public function images($modelName = null, $id = null) {
 			$this->loadModel($modelName);
-			$contentPage = $this->ContentPages->get($id);
+			$contentPage = $this->{$modelName}->get($id);
 
 			if ($this->request->is(['patch', 'post', 'put'])) {
 
-				$contentPage = $this->ContentPages->patchEntity($contentPage, $this->request->data);
-				if ($this->ContentPages->save($contentPage)) {
+				$contentPage = $this->{$modelName}->patchEntity($contentPage, $this->request->data);
+				if ($this->{$modelName}->save($contentPage)) {
 					if (!$this->request->is('ajax')) {
 						$this->Flash->success(__('The content page has been saved.'));
 
@@ -36,7 +39,7 @@
 
 				} else { //Přidání nového
 					if ($this->request->is('put')) {
-						$images              = $this->ContentPages->Images->find()
+						$images              = $this->{$modelName}->Images->find()
 							->limit(sizeof($this->request->data['images']) - 1)//Kolik se poslalo obrázků - extra data
 							->order(['id' => 'DESC'])
 							->all()

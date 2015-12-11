@@ -3,12 +3,21 @@
 
 
 	Router::plugin('Image', ['path' => '/Image'], function ($routes) {
-		$routes->connect('/:controller/:action/*');
+		$routes->connect('/images/*', ['prefix' => 'admin', 'admin' => 'true', 'controller' => 'Images', 'action' => 'images']);
+		$routes->connect('/test', ['controller' => 'Users', 'action' => 'logout', 'prefix' => 'admin']);  //No ide why it has to be here..
+		$routes->fallbacks('InflectedRoute');
+
 	});
 
 	/*Router::plugin('Image', function ($routes) {
 		$routes->prefix('/admin', function ($routes) {
 			$routes->connect('/:controller/:action/*');
+		});
+	});*/
+
+	/*Router::prefix('admin', function ($routes) {
+		$routes->plugin('Image', function ($routes) {
+			$routes->connect('/:controller');
 		});
 	});*/
 
