@@ -1,6 +1,8 @@
 <?php
 	/* @var $this \App\View\AppView */
 	//TODO aktivní
+	use Cake\Utility\Inflector;
+
 	foreach ($entity->images as $key => $image) {
 		if (!is_numeric($key)) {
 			continue;
@@ -9,7 +11,7 @@
 		<div class="well well-sm">
 			<?= $this->Html->link(
 				'<span aria-hidden="true">&times;</span>',
-				"/admin/content_pages/ajax_delete_image/{$image->id}",
+				"/Image/delete/{$image->id}",
 				[
 					'escape'               => false,
 					'class'                => 'close',

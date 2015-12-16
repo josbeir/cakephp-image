@@ -46,6 +46,10 @@ class ImageShell extends Shell
                 'help' => 'Set the table',
                 'short' => 't'
             ])
+            ->addOption('behavior_name', [
+                'help' => 'Jméno chování které se má hledat v modelech',
+                'short' => 'b'
+            ])
             ->addOption('force', [
                 'help' => 'Force re-generation of existing presets',
                 'short' => 'f',
@@ -172,7 +176,7 @@ class ImageShell extends Shell
             $tableName = Inflector::camelize($table);
             $tableTable = TableRegistry::get($plugin . $tableName);
 
-            if ($tableTable->hasBehavior('Image')) {
+            if ($tableTable->hasBehavior(isset($this->params['behavior_name']) ? $this->params['behavior_name'] : 'Image')) {
                 $tables[$tableName] = $tableTable;
             }
         }

@@ -2,6 +2,10 @@
 	namespace Image\Controller\Admin;
 
 
+	use Cake\Filesystem\File;
+	use Cake\Filesystem\Folder;
+	use Cake\Network\Exception\InternalErrorException;
+	use Cake\ORM\TableRegistry;
 	use Image\Controller\AppController;
 
 	class ImagesController extends AppController {
@@ -13,12 +17,12 @@
 		 */
 		public function images($modelName = null, $id = null) {
 			$this->loadModel($modelName);
-			$contentPage = $this->{$modelName}->get($id);
+			$entity = $this->{$modelName}->get($id);
 
 			if ($this->request->is(['patch', 'post', 'put'])) {
 
-				$contentPage = $this->{$modelName}->patchEntity($contentPage, $this->request->data);
-				if ($this->{$modelName}->save($contentPage)) {
+				$entity = $this->{$modelName}->patchEntity($entity, $this->request->data);
+				if ($this->{$modelName}->save($entity)) {
 					if (!$this->request->is('ajax')) {
 						$this->Flash->success(__('The content page has been saved.'));
 
@@ -31,7 +35,7 @@
 				}
 			}
 
-			$this->set('entity', $contentPage);
+			$this->set('entity', $entity);
 
 
 			if ($this->request->is('ajax')) {
@@ -39,18 +43,57 @@
 
 				} else { //Přidání nového
 					if ($this->request->is('put')) {
-						$images              = $this->{$modelName}->Images->find()
+						$images         = $this->{$modelName}->Images->find()
 							->limit(sizeof($this->request->data['images']) - 1)//Kolik se poslalo obrázků - extra data
 							->order(['id' => 'DESC'])
 							->all()
 							->toArray();
-						$contentPage->images = $images;
-						$this->set('entity', $contentPage); //Nastavení entity jen s novými obrázky
+						$entity->images = $images;
+						$this->set('entity', $entity); //Nastavení entity jen s novými obrázky
 					}
 					$this->viewBuilder()->layout('ajax');
 
 					$this->render('/Element/imagesContainer');
 				}
+			}
+		}
+
+
+		public function ajaxDeleteImage($id = null) {
+			$this->autoRender = false;
+			$ImagesTable      = TableRegistry::get('Images');
+			$image            = $ImagesTable->get($id);
+
+
+			$shared = $ImagesTable->find()
+				->where([
+					'id !='          => $image->id,
+					'field_index !=' => $image->field_index,
+					'model'          => $image->model,
+					'filename'       => $image->filename
+				]);
+
+			if (!$shared->count()) {
+				$basePath = WWW_ROOT . 'uploads/images/' . $image->model;
+				$dir      = new Folder($basePath);
+				$files    = $dir->find('.*_.*\..*');
+
+				(new File($basePath . DS . $image->filename))->delete();
+
+				foreach ($files as $file) {
+					if (preg_match("/.*_{$image->filename}/", $file)) {
+						(new File($basePath . DS . $file))->delete();
+					}
+				}
+			}
+
+
+			if (!$ImagesTable->delete($image)) {
+				throw new InternalErrorException;
+			}
+
+			if (!$this->request->is('ajax')) {
+				$this->redirect($this->referer());
 			}
 		}
 	}

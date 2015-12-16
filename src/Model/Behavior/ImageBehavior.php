@@ -484,14 +484,10 @@ class ImageBehavior extends Behavior
 
     /**
      * Return basepath for current model or overridable by the `alias` parameter
-     * @param string $alias Optional parameter to override the alias returned in the basePath
      * @return string
      */
-    public function basePath($alias = null)
+    public function basePath()
     {
-        if (!$alias) {
-            $alias = $this->_table->alias();
-        }
         return $this->config('path') . DS . $this->_table->alias();
     }
 
