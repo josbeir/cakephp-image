@@ -57,14 +57,15 @@ class ImageBehavior extends Behavior
 
         $this->_setupAssociations(
             $this->_config['table'],
-            $this->_config['fields']
+            $this->_config['fields'],
+			isset($this->_config['alias']) ? $this->_config['alias'] : false
         );
     }
 
 
-    protected function _setupAssociations($table, $fields)
+    protected function _setupAssociations($table, $fields, $alias = false)
     {
-        $alias = $this->_table->registryAlias();
+        $alias = $alias ?: $this->_table->registryAlias();
 
         foreach ($fields as $field => $type) {
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
