@@ -63,15 +63,19 @@
 					initImageForms();
 
 					$('#progress').removeClass('active');//.find('.progress-bar').animate({'width': 0 + '%'}, 0);
-				   toastr.success('<?= __('Image uploaded') ?>');
+					toastr.success('<?= __('Image uploaded') ?>');
+//					$('[data-toggle=toggle]').bootstrapToggle();
+				},
+				error      : function () {
+					toastr.error('<?= __('Something went wrong') ?>');
 				},
 				progressall: function (e, data) {
 					var progress = parseInt(data.loaded / data.total * 100, 10);
 					$('#progress').addClass('active').find('.progress-bar')
 						.css(
-						'width',
-						progress + '%'
-					);
+							'width',
+							progress + '%'
+						);
 				}
 			}).prop('disabled', !$.support.fileInput)
 			.parent().addClass($.support.fileInput ? undefined : 'disabled');

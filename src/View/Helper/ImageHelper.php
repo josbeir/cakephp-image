@@ -72,8 +72,8 @@ class ImageHelper extends Helper
     {
         $path = $this->_basePath($image);
 
-        if (!empty($preset)) {
-            $path .= $preset . '_';
+        if (!empty($preset['preset'])) {
+            $path .= $preset['preset'] . '_';
         }
 
         return $path . $image->filename;

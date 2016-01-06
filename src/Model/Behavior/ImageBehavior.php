@@ -23,6 +23,7 @@ use Cake\ORM\Entity;
 use Cake\ORM\Query;
 use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Routing\Router;
 use Intervention\Image\ImageManager;
 
 class ImageBehavior extends Behavior
@@ -182,6 +183,13 @@ class ImageBehavior extends Behavior
                 $mapReduce->emit($items[0], $key);
             }
         };
+
+		$request = Router::getRequest();
+		if(!isset($request->params['prefix']) || $request->params['prefix'] !== 'admin') { //TODO zuniverzálnit
+			foreach ($contain as &$item) {
+				$item['conditions'] = ['active' => true];
+			}
+		}
 
         return $query
             ->contain($contain)
@@ -478,6 +486,7 @@ class ImageBehavior extends Behavior
         if ($includeAlias) {
             $name = $alias . '_' . $name;
         }
+		echo "";
 
         return $name;
     }

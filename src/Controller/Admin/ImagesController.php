@@ -13,7 +13,10 @@
 		/**
 		 * Vrátí názvy odpovídající požadavku (včetně vynechaných znaků)
 		 *
-		 * @return void
+		 * @param null $modelName
+		 * @param null $id
+		 *
+		 * @return \Cake\Network\Response|null
 		 */
 		public function images($modelName = null, $id = null) {
 			$this->loadModel($modelName);
@@ -31,6 +34,8 @@
 				} else {
 					if (!$this->request->is('ajax')) {
 						$this->Flash->error(__('The content page could not be saved. Please, try again.'));
+					}  else {
+						$this->response->statusCode(500);
 					}
 				}
 			}

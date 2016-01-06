@@ -29,10 +29,13 @@
 				],
 				'class' => 'image_save'
 			]); ?>
+			<?php $this->Form->templates([
+				'checkboxContainer' => '<div class="form-group"><div class="col-md-12"><div class="checkbox">{{content}}</div></div></div>'
+			]); ?>
 			<div class="row">
 
 				<div class="col-xs-2">
-					<?= $this->CustomImage->render($image, ['preset' => 'thumbnail', 'class' => 'img-rounded img-responsive']) ?>
+					<?= $this->Image->render($image, ['preset' => 'thumbnail', 'class' => 'img-rounded img-responsive']) ?>
 				</div>
 				<div class="col-xs-10">
 					<div class="row">
@@ -42,8 +45,11 @@
 								'type' => 'numeric', 'value' => $image->field_index, 'id' => 'images.id' . $image->field_index
 							]
 						) ?>
-						<div class="col-xs-10">
+						<div class="col-xs-8">
 							<?= $this->Form->input('images.title', ['value' => $image->title, 'id' => 'images.title' . $image->field_index]) ?>
+						</div>
+						<div class="col-xs-2">
+							<?= $this->Form->input('images.active', ['type' => 'checkbox', 'checked' => $image->active, 'id' => 'images.active' . $image->field_index]); //, 'data-toggle' => 'toggle', 'label' => false, 'data-on' => __('active'), 'data-off' => __('Inactive')]) ?>
 						</div>
 						<div class="col-xs-2 ">
 							<?= $this->Form->input('images.main', ['type' => 'checkbox', 'checked' => $image->main, 'id' => 'images.main' . $image->field_index]) ?>
