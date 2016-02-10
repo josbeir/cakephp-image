@@ -23,7 +23,7 @@ Install using composer
 
 ```javascript
 "require": {
-	"josbeir/Image": "~1.0"
+	"josbeir/image": "~1.0"
 }
 ```
 
