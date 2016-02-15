@@ -186,14 +186,16 @@ class ImageBehavior extends Behavior
 
 		$request = Router::getRequest();
 		if(!isset($request->params['prefix']) || $request->params['prefix'] !== 'admin') { //TODO zuniverzálnit
-			foreach ($contain as &$item) {
-				$item['conditions'] = ['active' => true];
+			foreach ($contain as $key => &$item) {
+				$item['conditions'] = [$key . '.active' => true];
 			}
 		}
 
-        return $query
-            ->contain($contain)
-            ->mapReduce($mapper, $reducer);
+		$q = $query
+			->contain($contain)
+			->mapReduce($mapper, $reducer);
+
+		return $q;
     }
 
     /**
@@ -233,16 +235,19 @@ class ImageBehavior extends Behavior
         $existing = file_exists($fullPath);
 
         if ($existing || call_user_func_array($transferFn, [ $filePath, $fullPath ])) {
-            $file = new File($fullPath);
-            $data = [
-                'filename' => $fileName,
-                'size' => $file->size(),
-                'mime' => $file->mime()
-            ];
-        }
+			$file = new File($fullPath);
+			list($width, $height) = getimagesize($fullPath);
+			$data = [
+				'filename' => $fileName,
+				'size'     => $file->size(),
+				'mime'     => $file->mime(),
+				'width'    => $width,
+				'height'   => $height
+			];
+		}
 
-        return $data;
-    }
+		return $data;
+	}
 
     /**
      * Check if given path is an image
@@ -481,12 +486,11 @@ class ImageBehavior extends Behavior
     protected function _fieldName($field, $includeAlias = true)
     {
         $alias = $this->_table->alias();
-        $name = $field . '_image';
+		$name = $field . '_image';
 
         if ($includeAlias) {
             $name = $alias . '_' . $name;
         }
-		echo "";
 
         return $name;
     }

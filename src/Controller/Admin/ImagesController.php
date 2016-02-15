@@ -27,15 +27,15 @@
 				$entity = $this->{$modelName}->patchEntity($entity, $this->request->data);
 				if ($this->{$modelName}->save($entity)) {
 					if (!$this->request->is('ajax')) {
-						$this->Flash->success(__('The content page has been saved.'));
+						$this->Flash->success(__('Changes saved')); //Udělat jako v Settings/ajax_change_position - poslat najednou a udělat transakci
 
 						return $this->redirect(['action' => 'index']);
 					}
 				} else {
 					if (!$this->request->is('ajax')) {
-						$this->Flash->error(__('The content page could not be saved. Please, try again.'));
-					}  else {
-						$this->response->statusCode(500);
+						$this->Flash->error(__('Something went wrong, please contact us.'));
+					} else {
+						throw new InternalErrorException;
 					}
 				}
 			}
