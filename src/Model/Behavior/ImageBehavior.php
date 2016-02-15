@@ -300,13 +300,15 @@ class ImageBehavior extends Behavior
         return true;
     }
 
-    /**
-		 * Vlastní implementace beforeSave z pluginu
-		 *
-		 * @param Event       $event
-		 * @param Entity      $entity
-		 * @param ArrayObject $options
-		 */
+	/**
+	 * Vlastní implementace beforeSave z pluginu
+	 *
+	 * @param Event       $event
+	 * @param Entity      $entity
+	 * @param ArrayObject $options
+	 *
+	 * @return bool
+	 */
 		public function beforeSave(Event $event, Entity $entity, ArrayObject $options) { //TODO kontrolovat jestli se to fakt nahrává
 			$fields = $this->config('fields');
 			$alias  = $this->_table->registryAlias();
@@ -390,10 +392,16 @@ class ImageBehavior extends Behavior
 
 
 			}
-			$entity->set('_images', $entities);
+			if (count($entities)) {
+				$entity->set('_images', $entities);
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
-    /**
+	/**
      * [afterSave description]
      * @param  Event       $event   [description]
      * @param  Entity      $entity  [description]
