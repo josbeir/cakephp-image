@@ -13,28 +13,26 @@
 namespace Image\Model\Behavior;
 
 use ArrayObject;
+use Cake\Collection\Iterator\MapReduce;
 use Cake\Event\Event;
 use Cake\Filesystem\File;
 use Cake\Filesystem\Folder;
+use Cake\I18n\Time;
 use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\ORM\Query;
+use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
+use Cake\Routing\Router;
 use Intervention\Image\ImageManager;
 
 class ImageBehavior extends Behavior
 {
 
-    /**
-     * [$_imagesTable description]
-     * @var [type]
-     */
+	/* @var $_imagesTable Table */
     protected $_imagesTable;
 
-    /**
-     * [$_defaultConfig description]
-     * @var [type]
-     */
+
     public $_defaultConfig = [
         'fields' => [],
         'presets' => [],
@@ -53,30 +51,22 @@ class ImageBehavior extends Behavior
         'image/png'
     ];
 
-    /**
-     * [initialize description]
-     * @param  array  $config [description]
-     * @return void
-     */
+
     public function initialize(array $config)
     {
         $this->_imagesTable = TableRegistry::get($this->config('table'));
 
         $this->_setupAssociations(
             $this->_config['table'],
-            $this->_config['fields']
+            $this->_config['fields'],
+			isset($this->_config['alias']) ? $this->_config['alias'] : false
         );
     }
 
-    /**
-     * [setupAssociations description]
-     * @param  [type] $table  [description]
-     * @"param  ["type] $fields [description]
-     * @return void
-     */
-    protected function _setupAssociations($table, $fields)
+
+    protected function _setupAssociations($table, $fields, $alias = false)
     {
-        $alias = $this->_table->registryAlias();
+        $alias = $alias ?: $this->_table->registryAlias();
 
         foreach ($fields as $field => $type) {
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
@@ -97,7 +87,7 @@ class ImageBehavior extends Behavior
                 'foreignKey' => 'foreign_key',
                 'joinType' => 'LEFT',
                 'propertyName' => $this->_fieldName($field, false),
-                'order' => [
+                'sort' => [
                     $name . '.field_index' => 'ASC'
                 ],
                 'conditions' => [
@@ -118,17 +108,19 @@ class ImageBehavior extends Behavior
         ]);
     }
 
-    /**
-     * [beforeFind description]
-     * @param  Event  $event   [description]
-     * @param  Query  $query   [description]
-     * @param  [type] $options [description]
-     * @return [type]          [description]
-     *
-     * ### Options
-     * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
-     * speed up overall performance
-     */
+	/**
+	 * [beforeFind description]
+	 *
+	 * @param  Event $event [description]
+	 * @param  Query $query [description]
+	 * @param array  $options
+	 *
+	 * @return $this|array|Query [type]          [description]
+	 *
+	 * ### Options
+	 * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
+	 * speed up overall performance
+	 */
     public function beforeFind(Event $event, Query $query, $options = [])
     {
         if (isset($options['images']) && !$options['images']) {
@@ -143,7 +135,12 @@ class ImageBehavior extends Behavior
             $contain[$field] = $conditions;
         }
 
-        $mapper = function ($row, $key, $mapReduce) use ($fields) {
+		/**
+		 * @param $row
+		 * @param $key
+		 * @param $mapReduce MapReduce
+		 */
+		$mapper = function ($row, $key, $mapReduce) use ($fields) {
             foreach ($fields as $field => $type) {
                 $name = $this->_fieldName($field, false);
                 $image = isset($row[$name]) ? $row[$name] : null;
@@ -176,15 +173,29 @@ class ImageBehavior extends Behavior
             $mapReduce->emitIntermediate($row, $key);
         };
 
-        $reducer = function ($items, $key, $mapReduce) {
+		/**
+		 * @param $items
+		 * @param $key
+		 * @param $mapReduce MapReduce
+		 */
+		$reducer = function ($items, $key, $mapReduce) {
             if (isset($items[0])) {
                 $mapReduce->emit($items[0], $key);
             }
         };
 
-        return $query
-            ->contain($contain)
-            ->mapReduce($mapper, $reducer);
+		$request = Router::getRequest();
+		if(!isset($request->params['prefix']) || $request->params['prefix'] !== 'admin') { //TODO zuniverzálnit
+			foreach ($contain as $key => &$item) {
+				$item['conditions'] = [$key . '.active' => true];
+			}
+		}
+
+		$q = $query
+			->contain($contain)
+			->mapReduce($mapper, $reducer);
+
+		return $q;
     }
 
     /**
@@ -219,21 +230,24 @@ class ImageBehavior extends Behavior
         $pathinfo = pathinfo($fileName);
         $fileName = md5_file($filePath) . '.' . $pathinfo['extension'];
         $fullPath = $basePath . DS . $fileName;
-        $folder = new Folder($basePath, true, 0777);
+        new Folder($basePath, true, 0777);
         $transferFn = $copy || !is_uploaded_file($filePath) ? 'copy' : 'move_uploaded_file';
         $existing = file_exists($fullPath);
 
         if ($existing || call_user_func_array($transferFn, [ $filePath, $fullPath ])) {
-            $file = new File($fullPath);
-            $data = [
-                'filename' => $fileName,
-                'size' => $file->size(),
-                'mime' => $file->mime()
-            ];
-        }
+			$file = new File($fullPath);
+			list($width, $height) = getimagesize($fullPath);
+			$data = [
+				'filename' => $fileName,
+				'size'     => $file->size(),
+				'mime'     => $file->mime(),
+				'width'    => $width,
+				'height'   => $height
+			];
+		}
 
-        return $data;
-    }
+		return $data;
+	}
 
     /**
      * Check if given path is an image
@@ -286,82 +300,110 @@ class ImageBehavior extends Behavior
         return true;
     }
 
-    /**
-     * Implementation of the beforesave event, handles uploading / saving and overwriting of image records
-     * @param  \Cake\Event\Event       $event   [description]
-     * @param  \Cake\ORM\Entity      $entity  [description]
-     * @param  ArrayObject $options [description]
-     * @return void
-     */
-    public function beforeSave(Event $event, Entity $entity, ArrayObject $options)
-    {
-        $fields = $this->config('fields');
-        $alias = $this->_table->registryAlias();
+	/**
+	 * Vlastní implementace beforeSave z pluginu
+	 *
+	 * @param Event       $event
+	 * @param Entity      $entity
+	 * @param ArrayObject $options
+	 *
+	 * @return bool
+	 */
+		public function beforeSave(Event $event, Entity $entity, ArrayObject $options) {
+			$fields = $this->config('fields');
+			$alias  = $this->_table->registryAlias();
 
-        $newOptions = [$this->_imagesTable->alias() => ['validate' => false]];
-        $options['associated'] = $newOptions + $options['associated'];
-        $entities = [];
+			$newOptions            = [$this->_imagesTable->alias() => ['validate' => false]];
+			$options['associated'] = $newOptions + $options['associated'];
+			$entities              = [];
 
-        foreach ($fields as $_fieldName => $fieldType) {
-            $uploadedImages = [];
-            $field = $entity->{$_fieldName};
-            $field = $fieldType == 'one' ? [ $field ] : $field;
+			foreach ($fields as $_fieldName => $fieldType) {
+				$uploadedImages = [];
+				$field          = $entity->{$_fieldName};
+				$field          = $fieldType == 'one' ? [$field] : $field;
 
-            if (!$field) {
-                continue;
-            }
+				if (isset($field['id'])) { //Úprava existujícího obrázku
+					$field           = array_filter($field, 'strlen');
+					$image           = $this->_imagesTable->get($field['id']);
+					$image->modified = Time::now();
+					$entities[]      = $this->_imagesTable->patchEntity($image, $field);
+				} else if($field !== null) { //Nativní chování, podle toho jestli existuje field index
+					foreach ($field as $index => $image) {
+						$uploadedImage = null;
 
-            foreach ($field as $index => $image) {
-                $uploadeImage = null;
+						if (!empty($image['tmp_name'])) { // server based file uploads
+							$uploadedImage = $this->_upload($image['name'], $image['tmp_name'], false);
+						} elseif (is_string($image)) { // any other 'path' based uploads
+							$uploadedImage = $this->_upload($image, $image, true);
+						}
 
-                if (!empty($image['tmp_name'])) { // server based file uploads
-                    $uploadeImage = $this->_upload($image['name'], $image['tmp_name'], false);
-                } elseif (is_string($image)) { // any other 'path' based uploads
-                    $uploadeImage = $this->_upload($image, $image, true);
-                }
+						if (!empty($uploadedImage)) {
+							$uploadedImages[$index] = $uploadedImage + [
+									'field_index' => $index,
+									'model'       => $alias,
+									'field'       => $_fieldName,
+									'modified'    => Time::now()
+								];
+							if (isset($field['extra_data']) && is_array($field['extra_data'])) {
+								$uploadedImages[$index] = array_merge($field['extra_data'], $uploadedImages[$index]);
+							}
+						}
+					}
 
-                if (!empty($uploadeImage)) {
-                    $uploadedImages[$index] = $uploadeImage + [
-                        'field_index' => $index,
-                        'model' => $alias,
-                        'field' => $_fieldName
-                    ];
-                }
-            }
+					if (!empty($uploadedImages)) {
+						if ($this->config('pile')) { //Pokud se mají obrázky nakládat místo přepisování TODO saveStrategy v modelu?
+							$query         = $this->_imagesTable->find();
+							$maxFieldIndex = $query->select(['field_index' => $query->func()->max('field_index')])->first()->field_index;
+							foreach ($uploadedImages as $image) {
+								$image['field_index'] = ++$maxFieldIndex;
+								$image['created']     = Time::now();
+								$entities[]           = $this->_imagesTable->newEntity($image);
+							}
+						} else {
+							if (!$entity->isNew()) {
+								$preexisting = $this->_imagesTable->find()
+									->where([
+										'model'       => $alias,
+										'field'       => $_fieldName,
+										'foreign_key' => $entity->{$this->_table->primaryKey()}
+									])
+									->order(['field_index' => 'ASC']);
 
-            if (!empty($uploadedImages)) {
-                if (!$entity->isNew()) {
-                    $imagesTableAlias = $this->_imagesTable->alias();
-                    $preexisting = $this->_imagesTable->find()
-                        ->where([
-                            'model' => $alias,
-                            'field' => $_fieldName,
-                            'foreign_key' => $entity->{$this->_table->primaryKey()}
-                        ])
-                        ->order(['field_index' => 'ASC' ]);
+								foreach ($preexisting as $image) {
+									if (isset($uploadedImages[$image->field_index])) {
+										$entities[$image->field_index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$image->field_index]);
+									} elseif ($fieldType == 'one') {
+										$this->_imagesTable->delete($image);
+									}
+								}
+							}
 
-                    foreach ($preexisting as $image) {
-                        if (isset($uploadedImages[$image->field_index])) {
-                            $entities[$image->field_index] = $this->_imagesTable->patchEntity($image, $uploadedImages[$image->field_index]);
-                        } elseif ($fieldType == 'one') {
-                            $this->_imagesTable->delete($image);
-                        }
-                    }
-                }
+							$new = array_diff_key($uploadedImages, $entities);
+							foreach ($new as $image) {
+								$image['created'] = Time::now();
+								$entities[]       = $this->_imagesTable->newEntity($image);
+							}
+						}
 
-                $new = array_diff_key($uploadedImages, $entities);
-                foreach ($new as $image) {
-                    $entities[] = $this->_imagesTable->newEntity($image);
-                }
-            }
+					}
 
-            $entity->dirty($_fieldName, false);
-        }
+					$entity->dirty($_fieldName, false);
+				}
 
-        $entity->set('_images', $entities);
-    }
 
-    /**
+			}
+			if (count($entities)) {
+				$entity->set('_images', $entities);
+
+				return true;
+			} else if(count($_FILES)){ //nejsou entity ale jsou data
+				return false;
+			}  else {
+				return true;
+			}
+		}
+
+	/**
      * [afterSave description]
      * @param  Event       $event   [description]
      * @param  Entity      $entity  [description]
@@ -454,7 +496,7 @@ class ImageBehavior extends Behavior
     protected function _fieldName($field, $includeAlias = true)
     {
         $alias = $this->_table->alias();
-        $name = $field . '_image';
+		$name = $field . '_image';
 
         if ($includeAlias) {
             $name = $alias . '_' . $name;
@@ -465,20 +507,16 @@ class ImageBehavior extends Behavior
 
     /**
      * Return basepath for current model or overridable by the `alias` parameter
-     * @param string $alias Optional parameter to override the alias returned in the basePath
      * @return string
      */
-    public function basePath($alias = null)
+    public function basePath()
     {
-        if (!$alias) {
-            $alias = $this->_table->alias();
-        }
         return $this->config('path') . DS . $this->_table->alias();
     }
 
     /**
      * Return Images table object attached to current table
-     * @return Cake\ORM\Table Images table object
+     * @return Table
      */
     public function imagesTable()
     {
