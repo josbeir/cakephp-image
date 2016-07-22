@@ -309,7 +309,7 @@ class ImageBehavior extends Behavior
 	 *
 	 * @return bool
 	 */
-		public function beforeSave(Event $event, Entity $entity, ArrayObject $options) { //TODO kontrolovat jestli se to fakt nahrává
+		public function beforeSave(Event $event, Entity $entity, ArrayObject $options) {
 			$fields = $this->config('fields');
 			$alias  = $this->_table->registryAlias();
 
@@ -396,8 +396,10 @@ class ImageBehavior extends Behavior
 				$entity->set('_images', $entities);
 
 				return true;
-			} else {
+			} else if(count($_FILES)){ //nejsou entity ale jsou data
 				return false;
+			}  else {
+				return true;
 			}
 		}
 
