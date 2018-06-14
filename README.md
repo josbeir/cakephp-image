@@ -1,5 +1,3 @@
-!!! THIS PLUGIN IS NOW DEPRECTATED, Please refer to the [awesome-cakephp](https://github.com/FriendsOfCake/awesome-cakephp#imagery) list for better (maintained) alternatives
-
 Cake3 Image field behavior [![Build Status](https://travis-ci.org/josbeir/image.svg?branch=master)](https://travis-ci.org/josbeir/image)
 =====
 
