@@ -44,7 +44,7 @@ Configure::write('App', [
     ]
 ]);
 
-Cake\Cache\Cache::config([
+Cake\Cache\Cache::setConfig([
     '_cake_core_' => [
         'engine' => 'File',
         'prefix' => 'cake_core_',
@@ -65,7 +65,7 @@ if (!getenv('db_dsn')) {
 if (!getenv('DB')) {
     putenv('DB=sqlite');
 }
-ConnectionManager::config('test', ['url' => getenv('db_dsn')]);
+ConnectionManager::setConfig('test', ['url' => getenv('db_dsn')]);
 
 Plugin::load('Image', [
     'path' => dirname(dirname(__FILE__)) . DS,

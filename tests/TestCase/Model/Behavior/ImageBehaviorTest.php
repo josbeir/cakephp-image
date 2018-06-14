@@ -80,7 +80,7 @@ class ImageBehaviorTest extends TestCase
         ]);
 
         $result = $table->find()
-            ->hydrate(false)
+            ->enableHydration(false)
             ->first();
 
         $expected = [
@@ -236,7 +236,7 @@ class ImageBehaviorTest extends TestCase
 
         $table->save($item);
         $item = $table->find()
-            ->hydrate(false)
+            ->enableHydration(false)
             ->first();
 
         $expected = [

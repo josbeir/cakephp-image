@@ -60,7 +60,7 @@ class ImageBehavior extends Behavior
      */
     public function initialize(array $config)
     {
-        $this->_imagesTable = TableRegistry::get($this->config('table'));
+        $this->_imagesTable = TableRegistry::get($this->getConfig('table'));
 
         $this->_setupAssociations(
             $this->_config['table'],
@@ -76,7 +76,7 @@ class ImageBehavior extends Behavior
      */
     protected function _setupAssociations($table, $fields)
     {
-        $alias = $this->_table->registryAlias();
+        $alias = $this->_table->getRegistryAlias();
 
         foreach ($fields as $field => $type) {
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
@@ -86,7 +86,7 @@ class ImageBehavior extends Behavior
                 $fieldTable = TableRegistry::get($name, [
                     'className' => $table,
                     'alias' => $name,
-                    'table' => $this->_imagesTable->table()
+                    'table' => $this->_imagesTable->getTable()
                 ]);
             } else {
                 $fieldTable = TableRegistry::get($name);
@@ -135,7 +135,7 @@ class ImageBehavior extends Behavior
             return $query;
         }
 
-        $fields = $this->config('fields');
+        $fields = $this->getConfig('fields');
         $contain = $conditions = [];
 
         foreach ($fields as $field => $type) {
@@ -194,7 +194,7 @@ class ImageBehavior extends Behavior
     protected function _setEntitySource(&$entity)
     {
         if ($entity instanceof Entity) {
-            $entity->source($this->_table->registryAlias());
+            $entity->setSource($this->_table->getRegistryAlias());
         }
 
         return $entity;
@@ -238,7 +238,7 @@ class ImageBehavior extends Behavior
     /**
      * Check if given path is an image
      * @param  string  $path path of the image
-     * @return bool       true on success
+     * @return boolean       true on success
      */
     protected function _isImage($path)
     {
@@ -256,7 +256,7 @@ class ImageBehavior extends Behavior
      */
     public function generatePresets($image, $force = false)
     {
-        $manager = new ImageManager($this->config('manager'));
+        $manager = new ImageManager($this->getConfig('manager'));
         $basePath = $this->basePath($image->model) . DS;
         $imagePath = $basePath . $image->filename;
 
@@ -264,7 +264,7 @@ class ImageBehavior extends Behavior
             return false;
         }
 
-        foreach ($this->config('presets') as $preset => $options) {
+        foreach ($this->getConfig('presets') as $preset => $options) {
             $destination = $basePath . $preset . '_' . $image->filename;
 
             if (!$force && file_exists($destination)) {
@@ -280,7 +280,7 @@ class ImageBehavior extends Behavior
                 }
             }
 
-            $intImage->save($destination, $this->config('quality'));
+            $intImage->save($destination, $this->getConfig('quality'));
         }
 
         return true;
@@ -295,10 +295,10 @@ class ImageBehavior extends Behavior
      */
     public function beforeSave(Event $event, Entity $entity, ArrayObject $options)
     {
-        $fields = $this->config('fields');
-        $alias = $this->_table->registryAlias();
+        $fields = $this->getConfig('fields');
+        $alias = $this->_table->getRegistryAlias();
 
-        $newOptions = [$this->_imagesTable->alias() => ['validate' => false]];
+        $newOptions = [$this->_imagesTable->getAlias() => ['validate' => false]];
         $options['associated'] = $newOptions + $options['associated'];
         $entities = [];
 
@@ -331,12 +331,12 @@ class ImageBehavior extends Behavior
 
             if (!empty($uploadedImages)) {
                 if (!$entity->isNew()) {
-                    $imagesTableAlias = $this->_imagesTable->alias();
+                    $imagesTableAlias = $this->_imagesTable->getAlias();
                     $preexisting = $this->_imagesTable->find()
                         ->where([
                             'model' => $alias,
                             'field' => $_fieldName,
-                            'foreign_key' => $entity->{$this->_table->primaryKey()}
+                            'foreign_key' => $entity->{$this->_table->getPrimaryKey()}
                         ])
                         ->order(['field_index' => 'ASC' ]);
 
@@ -355,7 +355,7 @@ class ImageBehavior extends Behavior
                 }
             }
 
-            $entity->dirty($_fieldName, false);
+            $entity->setDirty($_fieldName, false);
         }
 
         $entity->set('_images', $entities);
@@ -388,7 +388,7 @@ class ImageBehavior extends Behavior
      */
     public function afterDelete(Event $event, Entity $entity, ArrayObject $options)
     {
-        $fields = $this->config('fields');
+        $fields = $this->getConfig('fields');
 
         foreach ($fields as $_fieldName => $fieldType) {
             if (isset($entity->{$_fieldName})) {
@@ -425,7 +425,7 @@ class ImageBehavior extends Behavior
 
             (new File($basePath . DS . $imageEntity->filename))->delete();
 
-            foreach ($this->config('presets') as $preset => $options) {
+            foreach ($this->getConfig('presets') as $preset => $options) {
                 (new File($basePath . DS . $preset . '_' . $imageEntity->filename))->delete();
             }
         }
@@ -453,7 +453,7 @@ class ImageBehavior extends Behavior
      */
     protected function _fieldName($field, $includeAlias = true)
     {
-        $alias = $this->_table->alias();
+        $alias = $this->_table->getAlias();
         $name = $field . '_image';
 
         if ($includeAlias) {
@@ -471,9 +471,9 @@ class ImageBehavior extends Behavior
     public function basePath($alias = null)
     {
         if (!$alias) {
-            $alias = $this->_table->alias();
+            $alias = $this->_table->getAlias();
         }
-        return $this->config('path') . DS . $this->_table->alias();
+        return $this->getConfig('path') . DS . $this->_table->getAlias();
     }
 
     /**
