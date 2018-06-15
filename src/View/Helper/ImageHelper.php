@@ -100,7 +100,7 @@ class ImageHelper extends Helper
             $basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
             $basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
 
-            $basePath = $this->paths[$image->model] = $basePath . DS . $table->alias() . DS;
+            $basePath = $this->paths[$image->model] = $basePath . '/' . $table->alias() . '/';
         }
 
         return $basePath;
