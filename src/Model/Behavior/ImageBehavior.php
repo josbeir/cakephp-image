@@ -26,16 +26,18 @@ class ImageBehavior extends Behavior
 {
 
     /**
-     * [$_imagesTable description]
-     * @var [type]
+     * Table instance
+     *
+     * @var \Cake\ORM\Table;
      */
     protected $_imagesTable;
 
     /**
-     * [$_defaultConfig description]
-     * @var [type]
+     * Default configuration
+     *
+     * @var array
      */
-    public $_defaultConfig = [
+    protected $_defaultConfig = [
         'fields' => [],
         'presets' => [],
         'quality' => 75,
@@ -46,6 +48,11 @@ class ImageBehavior extends Behavior
         ]
     ];
 
+    /**
+     * Mime types
+     *
+     * @var array
+     */
     protected $_mimeTypes = [
         'image/jpg',
         'image/jpeg',
@@ -54,8 +61,9 @@ class ImageBehavior extends Behavior
     ];
 
     /**
-     * [initialize description]
-     * @param  array  $config [description]
+     * {@inheritDoc}
+     *
+     * @param  array  $config Config options
      * @return void
      */
     public function initialize(array $config)
@@ -69,9 +77,11 @@ class ImageBehavior extends Behavior
     }
 
     /**
-     * [setupAssociations description]
-     * @param  [type] $table  [description]
-     * @"param  ["type] $fields [description]
+     * Setup assocs
+     *
+     * @param string $table  Table name
+     * @param array $fields Fields
+     *
      * @return void
      */
     protected function _setupAssociations($table, $fields)
@@ -120,14 +130,16 @@ class ImageBehavior extends Behavior
 
     /**
      * [beforeFind description]
-     * @param  Event  $event   [description]
-     * @param  Query  $query   [description]
-     * @param  [type] $options [description]
-     * @return [type]          [description]
      *
      * ### Options
      * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
      * speed up overall performance
+     *
+     * @param  Event  $event   Event
+     * @param  Query  $query   Query
+     * @param  array $options Options
+     *
+     * @return \Cake\ORM\Query
      */
     public function beforeFind(Event $event, Query $query, $options = [])
     {
@@ -189,7 +201,10 @@ class ImageBehavior extends Behavior
 
     /**
      * [setEntitySource description]
+     *
      * @param [type] $entity [description]
+     *
+     * @return \Cake\ORM\Entity
      */
     protected function _setEntitySource(&$entity)
     {
@@ -202,9 +217,11 @@ class ImageBehavior extends Behavior
 
     /**
      * [_upload description]
+     *
      * @param  string  $fileName [description]
      * @param  string  $filePath [description]
      * @param  bool $copy     [description]
+     *
      * @return array            [description]
      */
     protected function _upload($fileName, $filePath, $copy = false)
@@ -238,7 +255,8 @@ class ImageBehavior extends Behavior
     /**
      * Check if given path is an image
      * @param  string  $path path of the image
-     * @return boolean       true on success
+     *
+     * @return bool       true on success
      */
     protected function _isImage($path)
     {
@@ -250,8 +268,10 @@ class ImageBehavior extends Behavior
 
     /**
      * Generate all presets for given image entity, built so it can be used as an external method
+     *
      * @param  \Cake\ORM\Entity  $image [description]
      * @param  bool $force [description]
+     *
      * @return bool         [description]
      */
     public function generatePresets($image, $force = false)
@@ -288,9 +308,11 @@ class ImageBehavior extends Behavior
 
     /**
      * Implementation of the beforesave event, handles uploading / saving and overwriting of image records
+     *
      * @param  \Cake\Event\Event       $event   [description]
      * @param  \Cake\ORM\Entity      $entity  [description]
      * @param  ArrayObject $options [description]
+     *
      * @return void
      */
     public function beforeSave(Event $event, Entity $entity, ArrayObject $options)
@@ -363,9 +385,11 @@ class ImageBehavior extends Behavior
 
     /**
      * [afterSave description]
+     *
      * @param  Event       $event   [description]
      * @param  Entity      $entity  [description]
      * @param  ArrayObject $options [description]
+     *
      * @return void
      */
     public function afterSave(Event $event, Entity $entity, ArrayObject $options)
@@ -381,9 +405,11 @@ class ImageBehavior extends Behavior
 
     /**
      * [afterDelete description]
+     *
      * @param  Event       $event   [description]
      * @param  Entity      $entity  [description]
      * @param  ArrayObject $options [description]
+     *
      * @return void
      */
     public function afterDelete(Event $event, Entity $entity, ArrayObject $options)
@@ -407,7 +433,9 @@ class ImageBehavior extends Behavior
     /**
      * Safely remove the image entity and all its presets
      * The physical image files are only removed after making sure that the same file is not used in other records
-     * @param  \Cake\ORM\Entity $imageEntity [description]
+     *
+     * @param  \Cake\ORM\Entity $imageEntity Image entity
+     *
      * @return bool
      */
     public function deleteImageEntity($imageEntity)
@@ -435,7 +463,9 @@ class ImageBehavior extends Behavior
 
     /**
      * Delete an image by id
+     *
      * @param  int $imageId Image entity id
+     *
      * @return bool
      */
     public function deleteImage($imageId)
@@ -447,8 +477,10 @@ class ImageBehavior extends Behavior
 
     /**
      * Return the correct _fieldName used in relations and other parts
+     *
      * @param  string  $field   _fieldName
      * @param  bool $includeAlias wheter to include the alias
+     *
      * @return string
      */
     protected function _fieldName($field, $includeAlias = true)
@@ -466,6 +498,7 @@ class ImageBehavior extends Behavior
     /**
      * Return basepath for current model or overridable by the `alias` parameter
      * @param string $alias Optional parameter to override the alias returned in the basePath
+     *
      * @return string
      */
     public function basePath($alias = null)
@@ -473,11 +506,13 @@ class ImageBehavior extends Behavior
         if (!$alias) {
             $alias = $this->_table->getAlias();
         }
+
         return $this->getConfig('path') . DS . $this->_table->getAlias();
     }
 
     /**
      * Return Images table object attached to current table
+     *
      * @return Cake\ORM\Table Images table object
      */
     public function imagesTable()

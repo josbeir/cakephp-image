@@ -115,7 +115,6 @@ class ImageShell extends Shell
         $this->hr();
     }
 
-
     /**
      * Return Table
      * @return Cake\ORM\Table

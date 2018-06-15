@@ -18,14 +18,14 @@
 		"issues": "https://github.com/josbeir/image/issues"
 	},
 	"require": {
-		"php": ">=5.4",
+		"php": ">=5.6",
 		"cakephp/plugin-installer": "*",
 		"intervention/image": "~2.0",
 		"cakephp/cakephp": "~3.6"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "^5.1",
-		"cakephp/cakephp-codesniffer": "dev-master"
+		"phpunit/phpunit": "^5.7|^6.0",
+        "cakephp/cakephp-codesniffer": "^3.0"
 	},
 	"autoload": {
 		"psr-4": {
@@ -37,5 +37,14 @@
 			"Cake\\Test\\": "./vendor/cakephp/cakephp/tests",
 			"Image\\Test\\": "tests"
 		}
-	}
+	},
+    "scripts": {
+        "check": [
+            "@test",
+            "@cs-check"
+        ],
+        "cs-check": "phpcs --colors -p --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
+        "cs-fix": "phpcbf --colors --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
+        "test": "phpunit --colors=always"
+    }
 }
