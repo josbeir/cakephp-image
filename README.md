@@ -85,7 +85,7 @@ I've included a basic helper to render the images in your templates.
 $this->Image->render($entity->field); // Original image
 $this->Image->render($entity->field, [ 'preset' => 'presetName' ]); // Preset
 $this->Image->render($entity->field, [ 'preset' => 'presetName', 'alt' => 'Cool image' ]); // Preset + image attributes
-$this->Image->url($entity->field, [ 'preset' => 'presetName' ]); // Returns the image path
+$this->Image->url($entity->field, 'presetName'); // Returns the image path with an optional preset argument
 ```
 
 ### Shell
