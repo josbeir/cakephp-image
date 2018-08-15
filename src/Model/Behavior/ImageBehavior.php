@@ -21,6 +21,7 @@ use Cake\ORM\Entity;
 use Cake\ORM\Query;
 use Cake\ORM\TableRegistry;
 use Intervention\Image\ImageManager;
+use Symfony\Component\Debug\Debug;
 
 class ImageBehavior extends Behavior
 {
@@ -42,6 +43,10 @@ class ImageBehavior extends Behavior
         'presets' => [],
         'quality' => 75,
         'path' => null,
+        'appendImages' => true, // append images in "many" mode, dont replace
+        'forceConvert' => [ //force convert uploaded images
+            'widen' => [1600]
+        ],
         'table' => 'images',
         'manager' => [
             'driver' => 'imagick'
@@ -234,13 +239,39 @@ class ImageBehavior extends Behavior
 
         $basePath = $this->basePath();
         $pathinfo = pathinfo($fileName);
-        $fileName = md5_file($filePath) . '.' . $pathinfo['extension'];
+        $fileName = md5_file($filePath) . '.' . strtolower($pathinfo['extension']);
         $fullPath = $basePath . DS . $fileName;
         $folder = new Folder($basePath, true, 0777);
         $transferFn = $copy || !is_uploaded_file($filePath) ? 'copy' : 'move_uploaded_file';
         $existing = file_exists($fullPath);
 
-        if ($existing || call_user_func_array($transferFn, [ $filePath, $fullPath ])) {
+
+        $forceConvert = $this->getConfig('forceConvert');
+
+        // If need force convert, do it
+        if ($transferFn != 'copy' && $forceConvert){
+            // convert upload file to width 1600
+            $options = $forceConvert;
+
+            $manager = new ImageManager($this->getConfig('manager'));
+            $intImage = $manager->make($filePath);
+            foreach ($options as $action => $params) {
+                if (is_callable($params)) {
+                    $intImage = $params($intImage, $imagePath);
+                } else {
+                    $intImage = call_user_func_array([ $intImage, $action ], $params);
+                }
+            }
+
+            $intImage->save($fullPath, $this->getConfig('quality'));
+
+            $copyResult = true;
+        } else {
+            $copyResult = call_user_func_array($transferFn, [$filePath, $fullPath]);
+
+
+        }
+        if ($existing || $copyResult) {
             $file = new File($fullPath);
             $data = [
                 'filename' => $fileName,
@@ -325,6 +356,28 @@ class ImageBehavior extends Behavior
         $entities = [];
 
         foreach ($fields as $_fieldName => $fieldType) {
+
+            if ($this->getConfig('appendImages')){
+                // Get max field_index, for adding new images, dont replace them
+                $maxIdx = $this->_imagesTable->find('all')
+                    ->select('field_index')->where([
+                        'model' => $alias,
+                        'field' => $_fieldName,
+                        'foreign_key' => $entity->{$this->_table->getPrimaryKey()}
+                    ])
+                    ->hydrate(false)
+                    ->max('field_index')['field_index'];
+
+                if (!$maxIdx){
+                    $maxIdx = 0;
+                }
+
+                $maxIdx++;
+            } else {
+                $maxIdx = 0;
+            }
+
+
             $uploadedImages = [];
             $field = $entity->{$_fieldName};
             $field = $fieldType == 'one' ? [ $field ] : $field;
@@ -334,6 +387,8 @@ class ImageBehavior extends Behavior
             }
 
             foreach ($field as $index => $image) {
+                // correct $index for appending image
+                $index = $maxIdx+$index;
                 $uploadeImage = null;
 
                 if (!empty($image['tmp_name'])) { // server based file uploads
@@ -344,10 +399,10 @@ class ImageBehavior extends Behavior
 
                 if (!empty($uploadeImage)) {
                     $uploadedImages[$index] = $uploadeImage + [
-                        'field_index' => $index,
-                        'model' => $alias,
-                        'field' => $_fieldName
-                    ];
+                            'field_index' => $index,
+                            'model' => $alias,
+                            'field' => $_fieldName
+                        ];
                 }
             }
 
@@ -379,6 +434,7 @@ class ImageBehavior extends Behavior
 
             $entity->setDirty($_fieldName, false);
         }
+
 
         $entity->set('_images', $entities);
     }
