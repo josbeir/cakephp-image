@@ -16,6 +16,8 @@ The behavior is very much a work in progress and should not be considered stable
 * **path**: The base path where the uploaded images should be stored
 * **table**: The table name of for storing the image data (see Config/Schema/images.sql)
 * **manager**: Settings for Intervention\Image\ImageManager (defaults to driver : imagick)
+* **appendImages**: if true, then append images on edit, not replace them
+* **forceConvert**: Force convert images on upload,  syntax like on one preset
 
 ### Usage
 

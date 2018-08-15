@@ -357,23 +357,25 @@ class ImageBehavior extends Behavior
 
         foreach ($fields as $_fieldName => $fieldType) {
 
-            $lastIndex = 0;
+            if ($this->getConfig('appendImages')){
+                // Get max field_index, for adding new images, dont replace them
+                $maxIdx = $this->_imagesTable->find('all')
+                    ->select('field_index')->where([
+                        'model' => $alias,
+                        'field' => $_fieldName,
+                        'foreign_key' => $entity->{$this->_table->getPrimaryKey()}
+                    ])
+                    ->hydrate(false)
+                    ->max('field_index')['field_index'];
 
-            // Get max field_index, for adding new images, dont replace them
-            $maxIdx = $this->_imagesTable->find('all')
-                ->select('field_index')->where([
-                    'model' => $alias,
-                    'field' => $_fieldName,
-                    'foreign_key' => $entity->{$this->_table->getPrimaryKey()}
-                ])
-                ->hydrate(false)
-                ->max('field_index')['field_index'];
+                if (!$maxIdx){
+                    $maxIdx = 0;
+                }
 
-            if (!$maxIdx){
+                $maxIdx++;
+            } else {
                 $maxIdx = 0;
             }
-
-            $maxIdx++;
 
 
             $uploadedImages = [];
