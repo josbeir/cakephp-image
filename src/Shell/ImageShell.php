@@ -12,6 +12,7 @@
  */
 namespace Image\Shell;
 
+use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Plugin;
 use Cake\FileSystem\Folder;
@@ -27,7 +28,7 @@ class ImageShell extends Shell
      * [getOptionParser description]
      * @return [type] [description]
      */
-    public function getOptionParser()
+    public function getOptionParser(): ConsoleOptionParser
     {
         $parser = parent::getOptionParser();
         $parser

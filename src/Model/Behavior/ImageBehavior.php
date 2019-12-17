@@ -10,6 +10,7 @@
  * @link          https://github.com/josbeir/image
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace Image\Model\Behavior;
 
 use ArrayObject;
@@ -63,10 +64,10 @@ class ImageBehavior extends Behavior
     /**
      * {@inheritDoc}
      *
-     * @param  array  $config Config options
+     * @param array $config Config options
      * @return void
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         $this->_imagesTable = TableRegistry::get($this->getConfig('table'));
 
@@ -79,7 +80,7 @@ class ImageBehavior extends Behavior
     /**
      * Setup assocs
      *
-     * @param string $table  Table name
+     * @param string $table Table name
      * @param array $fields Fields
      *
      * @return void
@@ -135,9 +136,9 @@ class ImageBehavior extends Behavior
      * `images` When setting images to false nothing will be added to the query and no image fields will be returned in the resultset and will probably
      * speed up overall performance
      *
-     * @param  Event  $event   Event
-     * @param  Query  $query   Query
-     * @param  array $options Options
+     * @param Event $event Event
+     * @param Query $query Query
+     * @param array $options Options
      *
      * @return \Cake\ORM\Query
      */
@@ -218,9 +219,9 @@ class ImageBehavior extends Behavior
     /**
      * [_upload description]
      *
-     * @param  string  $fileName [description]
-     * @param  string  $filePath [description]
-     * @param  bool $copy     [description]
+     * @param string $fileName [description]
+     * @param string $filePath [description]
+     * @param bool $copy [description]
      *
      * @return array            [description]
      */
@@ -240,7 +241,7 @@ class ImageBehavior extends Behavior
         $transferFn = $copy || !is_uploaded_file($filePath) ? 'copy' : 'move_uploaded_file';
         $existing = file_exists($fullPath);
 
-        if ($existing || call_user_func_array($transferFn, [ $filePath, $fullPath ])) {
+        if ($existing || call_user_func_array($transferFn, [$filePath, $fullPath])) {
             $file = new File($fullPath);
             $data = [
                 'filename' => $fileName,
@@ -254,7 +255,7 @@ class ImageBehavior extends Behavior
 
     /**
      * Check if given path is an image
-     * @param  string  $path path of the image
+     * @param string $path path of the image
      *
      * @return bool       true on success
      */
@@ -269,8 +270,8 @@ class ImageBehavior extends Behavior
     /**
      * Generate all presets for given image entity, built so it can be used as an external method
      *
-     * @param  \Cake\ORM\Entity  $image [description]
-     * @param  bool $force [description]
+     * @param \Cake\ORM\Entity $image [description]
+     * @param bool $force [description]
      *
      * @return bool         [description]
      */
@@ -296,7 +297,7 @@ class ImageBehavior extends Behavior
                 if (is_callable($params)) {
                     $intImage = $params($intImage, $imagePath);
                 } else {
-                    $intImage = call_user_func_array([ $intImage, $action ], $params);
+                    $intImage = call_user_func_array([$intImage, $action], $params);
                 }
             }
 
@@ -309,9 +310,9 @@ class ImageBehavior extends Behavior
     /**
      * Implementation of the beforesave event, handles uploading / saving and overwriting of image records
      *
-     * @param  \Cake\Event\Event       $event   [description]
-     * @param  \Cake\ORM\Entity      $entity  [description]
-     * @param  ArrayObject $options [description]
+     * @param \Cake\Event\Event $event [description]
+     * @param \Cake\ORM\Entity $entity [description]
+     * @param ArrayObject $options [description]
      *
      * @return void
      */
@@ -327,7 +328,7 @@ class ImageBehavior extends Behavior
         foreach ($fields as $_fieldName => $fieldType) {
             $uploadedImages = [];
             $field = $entity->{$_fieldName};
-            $field = $fieldType == 'one' ? [ $field ] : $field;
+            $field = $fieldType == 'one' ? [$field] : $field;
 
             if (!$field) {
                 continue;
@@ -344,10 +345,10 @@ class ImageBehavior extends Behavior
 
                 if (!empty($uploadeImage)) {
                     $uploadedImages[$index] = $uploadeImage + [
-                        'field_index' => $index,
-                        'model' => $alias,
-                        'field' => $_fieldName
-                    ];
+                            'field_index' => $index,
+                            'model' => $alias,
+                            'field' => $_fieldName
+                        ];
                 }
             }
 
@@ -360,7 +361,7 @@ class ImageBehavior extends Behavior
                             'field' => $_fieldName,
                             'foreign_key' => $entity->{$this->_table->getPrimaryKey()}
                         ])
-                        ->order(['field_index' => 'ASC' ]);
+                        ->order(['field_index' => 'ASC']);
 
                     foreach ($preexisting as $image) {
                         if (isset($uploadedImages[$image->field_index])) {
@@ -386,9 +387,9 @@ class ImageBehavior extends Behavior
     /**
      * [afterSave description]
      *
-     * @param  Event       $event   [description]
-     * @param  Entity      $entity  [description]
-     * @param  ArrayObject $options [description]
+     * @param Event $event [description]
+     * @param Entity $entity [description]
+     * @param ArrayObject $options [description]
      *
      * @return void
      */
@@ -406,9 +407,9 @@ class ImageBehavior extends Behavior
     /**
      * [afterDelete description]
      *
-     * @param  Event       $event   [description]
-     * @param  Entity      $entity  [description]
-     * @param  ArrayObject $options [description]
+     * @param Event $event [description]
+     * @param Entity $entity [description]
+     * @param ArrayObject $options [description]
      *
      * @return void
      */
@@ -420,7 +421,7 @@ class ImageBehavior extends Behavior
             if (isset($entity->{$_fieldName})) {
                 $images = $entity->{$_fieldName};
                 if (!is_array($entity->{$_fieldName})) {
-                    $images = [ $entity->{$_fieldName} ];
+                    $images = [$entity->{$_fieldName}];
                 }
 
                 foreach ($images as $imageEntity) {
@@ -434,7 +435,7 @@ class ImageBehavior extends Behavior
      * Safely remove the image entity and all its presets
      * The physical image files are only removed after making sure that the same file is not used in other records
      *
-     * @param  \Cake\ORM\Entity $imageEntity Image entity
+     * @param \Cake\ORM\Entity $imageEntity Image entity
      *
      * @return bool
      */
@@ -464,7 +465,7 @@ class ImageBehavior extends Behavior
     /**
      * Delete an image by id
      *
-     * @param  int $imageId Image entity id
+     * @param int $imageId Image entity id
      *
      * @return bool
      */
@@ -478,8 +479,8 @@ class ImageBehavior extends Behavior
     /**
      * Return the correct _fieldName used in relations and other parts
      *
-     * @param  string  $field   _fieldName
-     * @param  bool $includeAlias wheter to include the alias
+     * @param string $field _fieldName
+     * @param bool $includeAlias wheter to include the alias
      *
      * @return string
      */
