@@ -1,4 +1,5 @@
 <?php
+
 namespace Image\Test\TestCase\Model\Behavior;
 
 use Cake\Collection\Collection;
@@ -20,7 +21,7 @@ class ImageBehaviorTest extends TestCase
         'plugin.image.images'
     ];
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         TableRegistry::clear();
