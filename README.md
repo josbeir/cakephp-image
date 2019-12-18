@@ -1,4 +1,4 @@
-Cake3 Image field behavior [![Build Status](https://travis-ci.org/josbeir/cakephp-image.svg?branch=master)](https://travis-ci.org/josbeir/cakephp-image)
+Cake 4 Image field behavior [![Build Status](https://travis-ci.org/josbeir/cakephp-image.svg?branch=master)](https://travis-ci.org/josbeir/cakephp-image)
 =====
 
 Image behavior that works much like Cake's built in Translate Behavior by adding fields with image data to every entity the table returns.
@@ -67,7 +67,7 @@ $this->addBehavior('Image.Image', [
 			'canvas' => function($image) {
 			 	// you can use callback functions for more advanced stuff
 				// do some fancy stuff here
-				
+
 				return $image;
 			},
 		]
