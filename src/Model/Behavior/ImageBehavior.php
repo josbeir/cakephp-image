@@ -22,6 +22,8 @@ use Cake\ORM\Entity;
 use Cake\ORM\Query;
 use Cake\ORM\TableRegistry;
 use Intervention\Image\ImageManager;
+use Zend\Diactoros\Stream;
+use Zend\Diactoros\UploadedFile;
 
 class ImageBehavior extends Behavior
 {
@@ -335,10 +337,15 @@ class ImageBehavior extends Behavior
             }
 
             foreach ($field as $index => $image) {
+                /**
+                 * @var UploadedFile|string $image
+                 * @var Stream $stream
+                 */
                 $uploadeImage = null;
 
-                if (!empty($image['tmp_name'])) { // server based file uploads
-                    $uploadeImage = $this->_upload($image['name'], $image['tmp_name'], false);
+                if ($image instanceof UploadedFile) { // server based file uploads
+                    $stream = $image->getStream();
+                    $uploadeImage = $this->_upload($image->getClientFilename(), $stream->getMetadata('uri'), false);
                 } elseif (is_string($image)) { // any other 'path' based uploads
                     $uploadeImage = $this->_upload($image, $image, true);
                 }
@@ -508,7 +515,7 @@ class ImageBehavior extends Behavior
             $alias = $this->_table->getAlias();
         }
 
-        return $this->getConfig('path') . DS . $this->_table->getAlias();
+        return $this->getConfig('path') . DS . strtolower($this->_table->getAlias());
     }
 
     /**
