@@ -1,7 +1,7 @@
 language: php
 
 php:
-  - 7.1
+  - 7.2
 
 sudo: false
 
@@ -15,10 +15,10 @@ matrix:
   fast_finish: true
 
   include:
-    - php: 7.1
+    - php: 7.2
       env: RUN_CS=1 RUN_TESTS=0
 
-    - php: 7.1
+    - php: 7.2
       env: RUN_TESTS=0 DB=mysql db_dsn='mysql://travis@0.0.0.0/cakephp_test'
 
 before_script:
