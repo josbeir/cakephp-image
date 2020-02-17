@@ -1,6 +1,6 @@
 {
 	"name": "josbeir/image",
-	"description": "CakePHP 3.0 Image upload behavior",
+	"description": "CakePHP 4.0 Image upload behavior",
 	"type": "cakephp-plugin",
 	"keywords": ["cakephp", "image"],
 	"homepage": "https://github.com/josbeir/Image",
