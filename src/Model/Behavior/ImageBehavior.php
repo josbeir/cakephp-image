@@ -71,7 +71,7 @@ class ImageBehavior extends Behavior
      */
     public function initialize(array $config): void
     {
-        $this->_imagesTable = TableRegistry::get($this->getConfig('table'));
+        $this->_imagesTable = TableRegistry::getTableLocator()->get($this->getConfig('table'));
 
         $this->_setupAssociations(
             $this->_config['table'],
@@ -95,14 +95,14 @@ class ImageBehavior extends Behavior
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
             $name = $this->_fieldName($field);
 
-            if (!TableRegistry::exists($name)) {
-                $fieldTable = TableRegistry::get($name, [
+            if (!TableRegistry::getTableLocator()->exists($name)) {
+                $fieldTable = TableRegistry::getTableLocator()->get($name, [
                     'className' => $table,
                     'alias' => $name,
                     'table' => $this->_imagesTable->getTable()
                 ]);
             } else {
-                $fieldTable = TableRegistry::get($name);
+                $fieldTable = TableRegistry::getTableLocator()->get($name);
             }
 
             $this->_table->{$assocType}($name, [
@@ -322,7 +322,6 @@ class ImageBehavior extends Behavior
     {
         $fields = $this->getConfig('fields');
         $alias = $this->_table->getRegistryAlias();
-
         $newOptions = [$this->_imagesTable->getAlias() => ['validate' => false]];
         $options['associated'] = $newOptions + $options['associated'];
         $entities = [];
@@ -343,7 +342,7 @@ class ImageBehavior extends Behavior
                  */
                 $uploadeImage = null;
 
-                if ($image instanceof UploadedFile) { // server based file uploads
+                if ($image instanceof UploadedFile && $image->getError() === 0) { // server based file uploads
                     $stream = $image->getStream();
                     $uploadeImage = $this->_upload($image->getClientFilename(), $stream->getMetadata('uri'), false);
                 } elseif (is_string($image)) { // any other 'path' based uploads
