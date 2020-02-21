@@ -23,7 +23,7 @@ use Cake\ORM\Query;
 use Cake\ORM\TableRegistry;
 use Intervention\Image\ImageManager;
 use Zend\Diactoros\Stream;
-use Zend\Diactoros\UploadedFile;
+use Laminas\Diactoros\UploadedFile;
 
 class ImageBehavior extends Behavior
 {
