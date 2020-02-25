@@ -10,6 +10,7 @@
  * @link          https://github.com/josbeir/image
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace Image\View\Helper;
 
 use Cake\ORM\Entity;
@@ -23,7 +24,7 @@ class ImageHelper extends Helper
      * [$helpers description]
      * @var [type]
      */
-    public $helpers = [ 'Html' ];
+    public $helpers = ['Html'];
 
     /**
      * Paths cache by model
@@ -41,8 +42,8 @@ class ImageHelper extends Helper
 
     /**
      * Render the image as an image tag
-     * @param  Cake\ORM\Entity $image Image entity
-     * @param  array $options Options are passed to HtmlHelper::image (except preset)
+     * @param Cake\ORM\Entity $image Image entity
+     * @param array $options Options are passed to HtmlHelper::image (except preset)
      * @return strign Html image tag
      */
     public function render($image, array $options = [])
@@ -64,8 +65,8 @@ class ImageHelper extends Helper
 
     /**
      * Return the image url
-     * @param  Cake\ORM\Entity $image Image entity
-     * @param  string $preset Optional name of the preset to return
+     * @param Cake\ORM\Entity $image Image entity
+     * @param string $preset Optional name of the preset to return
      * @return string Url of the image
      */
     public function url($image, $preset = null)
@@ -81,7 +82,7 @@ class ImageHelper extends Helper
 
     /**
      * Return directory where image is located for given entity
-     * @param  Cake\ORM\Entity $image Image entity
+     * @param Cake\ORM\Entity $image Image entity
      * @return string        Base path
      */
     protected function _basePath($image)
@@ -90,17 +91,17 @@ class ImageHelper extends Helper
             return $this->paths[$image->model];
         }
 
-        $basePath = $this->config('base');
-        $table = TableRegistry::get($image->model);
+        $basePath = $this->getConfig('base');
+        $table = TableRegistry::getTableLocator()->get($image->model);
 
         if ($table->hasBehavior('Image')) {
-            $model = $table->alias();
-            $basePath = $table->behaviors()->Image->config('path');
+            $model = $table->getAlias();
+            $basePath = $table->behaviors()->Image->getConfig('path');
             $basePath = str_replace(WWW_ROOT, '/', $basePath);
             $basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
             $basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
 
-            $basePath = $this->paths[$image->model] = $basePath . '/' . $table->alias() . '/';
+            $basePath = $this->paths[$image->model] = $basePath . '/' . $table->getAlias() . '/';
         }
 
         return $basePath;
