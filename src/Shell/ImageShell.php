@@ -10,12 +10,14 @@
  * @link          https://github.com/josbeir/image
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace Image\Shell;
 
 use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Plugin;
 use Cake\FileSystem\Folder;
+use Cake\ORM\Table;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Inflector;
 
@@ -86,15 +88,15 @@ class ImageShell extends Shell
 
     /**
      * [_regenerate description]
-     * @param  [type] $table [description]
+     * @param Table $table [description]
      * @return void
      */
     protected function _regenerate($table)
     {
-        $alias = $table->alias();
+        $alias = $table->getAlias();
         $imagesTable = $table->imagesTable();
         $images = $imagesTable->find()
-            ->where(['model' => $table->registryAlias() ]);
+            ->where(['model' => $table->getRegistryAlias()]);
 
         if (isset($this->params['id'])) {
             $images->andWhere(['foreign_key' => $this->params['id']]);
@@ -107,7 +109,7 @@ class ImageShell extends Shell
         $x = 1;
         foreach ($images as $image) {
             $table->generatePresets($image, $this->params['force']);
-            $this->io()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
+            $this->getIo()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
             $x++;
         }
 
@@ -124,7 +126,7 @@ class ImageShell extends Shell
     {
         $tables = $this->_getTables();
         $selection = null;
-        $options = [ 1 => 'All tables' ];
+        $options = [1 => 'All tables'];
 
         foreach ($tables as $tableName => $table) {
             $options[] = $tableName;
