@@ -16,14 +16,14 @@ class ImageBehaviorTest extends TestCase
 {
 
     public $fixtures = [
-        'core.articles',
+        'core.Articles',
         'plugin.image.images',
     ];
 
     public function tearDown()
     {
         parent::tearDown();
-        TableRegistry::clear();
+        TableRegistry::getTableLocator()->clear();
 
         (new Folder(TMP . 'tests' . DS . 'image'))->delete();
     }
@@ -34,7 +34,7 @@ class ImageBehaviorTest extends TestCase
      */
     public function testFindImageOne()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
                 'image' => 'one',
@@ -72,7 +72,7 @@ class ImageBehaviorTest extends TestCase
      */
     public function testFindImageMany()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
                 'images' => 'many',
@@ -133,7 +133,7 @@ class ImageBehaviorTest extends TestCase
      */
     public function testFormUploadSingleFile()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'path' => TMP . 'tests' . DS . 'image',
             'fields' => [
@@ -172,7 +172,7 @@ class ImageBehaviorTest extends TestCase
      */
     public function testCopy()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'path' => TMP . 'tests' . DS . 'image',
             'fields' => [
@@ -210,7 +210,7 @@ class ImageBehaviorTest extends TestCase
      */
     public function testFormUploadMultipleFiles()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'path' => TMP . 'tests' . DS . 'image',
             'fields' => [
@@ -284,7 +284,7 @@ class ImageBehaviorTest extends TestCase
 
     public function testDeleteImageById()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
                 'image' => 'one',
@@ -305,7 +305,7 @@ class ImageBehaviorTest extends TestCase
      */
     public function testReturnImagesTable()
     {
-        $table = TableRegistry::get('Articles');
+        $table = TableRegistry::getTableLocator()->get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
                 'image' => 'one',

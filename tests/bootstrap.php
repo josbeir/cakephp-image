@@ -9,6 +9,9 @@
  * @link          http://cakephp.org CakePHP(tm) Project
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
+error_reporting(E_ALL & ~E_USER_DEPRECATED);
+
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 define('CAKE', dirname(__DIR__) . '/vendor/cakephp/cakephp/src/');
