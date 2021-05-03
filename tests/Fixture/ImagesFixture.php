@@ -49,7 +49,7 @@ class ImagesFixture extends TestFixture
             'foreign_key' => 1,
             'filename' => 'test1.jpg',
             'size' => 100,
-            'mime' => 'image/jpg'
+            'mime' => 'image/jpg',
         ],
         [
             'id' => 2,
@@ -59,7 +59,7 @@ class ImagesFixture extends TestFixture
             'foreign_key' => 1,
             'filename' => 'test2.jpg',
             'size' => 100,
-            'mime' => 'image/jpg'
+            'mime' => 'image/jpg',
         ],
         [
             'id' => 3,
@@ -69,7 +69,7 @@ class ImagesFixture extends TestFixture
             'foreign_key' => 1,
             'filename' => 'test3.jpg',
             'size' => 100,
-            'mime' => 'image/jpg'
+            'mime' => 'image/jpg',
         ],
         [
             'id' => 4,
@@ -79,7 +79,7 @@ class ImagesFixture extends TestFixture
             'foreign_key' => 1,
             'filename' => 'test4.jpg',
             'size' => 100,
-            'mime' => 'image/jpg'
-        ]
+            'mime' => 'image/jpg',
+        ],
     ];
 }

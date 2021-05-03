@@ -29,7 +29,7 @@ Configure::write('App', [
     'namespace' => 'App',
     'paths' => [
         'plugins' => [APP . DS . 'testapp' . DS . 'Plugin' . DS],
-    ]
+    ],
 ]);
 
 Cache::setConfig([
@@ -44,7 +44,7 @@ Cache::setConfig([
         'prefix' => 'cake_model_',
         'serialize' => true,
         'path' => '/tmp',
-    ]
+    ],
 ]);
 
 if (!getenv('db_dsn')) {

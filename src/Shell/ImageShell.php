@@ -36,21 +36,21 @@ class ImageShell extends Shell
             ])
             ->addOption('plugin', [
                 'help' => 'Plugin name to scan models for',
-                'short' => 'p'
+                'short' => 'p',
             ])
             ->addOption('id', [
                 'help' => 'Pass to generate for an individual record',
-                'short' => 'i'
+                'short' => 'i',
             ])
             ->addOption('table', [
                 'help' => 'Set the table',
-                'short' => 't'
+                'short' => 't',
             ])
             ->addOption('force', [
                 'help' => 'Force re-generation of existing presets',
                 'short' => 'f',
                 'boolean' => true,
-                'default' => false
+                'default' => false,
             ]);
 
         return $parser;
@@ -106,7 +106,7 @@ class ImageShell extends Shell
         $x = 1;
         foreach ($images as $image) {
             $table->generatePresets($image, $this->params['force']);
-            $this->io()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
+            $this->getIo()->overwrite(sprintf("<question>[%s]\t Creating presets... [%s/%s]</question>", $alias, $x, $total), 0);
             $x++;
         }
 
@@ -169,7 +169,7 @@ class ImageShell extends Shell
         foreach ((new Folder($modelPath))->find('.*.php') as $file) {
             $table = str_replace('Table.php', '', $file);
             $tableName = Inflector::camelize($table);
-            $tableTable = TableRegistry::get($plugin . $tableName);
+            $tableTable = TableRegistry::getTableLocator()->get($plugin . $tableName);
 
             if ($tableTable->hasBehavior('Image')) {
                 $tables[$tableName] = $tableTable;

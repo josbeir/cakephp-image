@@ -12,31 +12,37 @@
  */
 namespace Image\View\Helper;
 
-use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
 use Cake\View\Helper;
 
 class ImageHelper extends Helper
 {
-
     /**
-     * [$helpers description]
-     * @var [type]
+     * Helpers
+     *
+     * @var array
      */
     public $helpers = [ 'Html' ];
 
     /**
      * Paths cache by model
+     *
      * @var array
      */
     protected $paths = [];
 
     /**
-     * [$_defaultConfig description]
-     * @var [type]
+     * Default configuration
+     *
+     * Options
+     * - `base` Base path.
+     * - `urlPrefix` image urls cans be prefixed with this settings. For instance CDN urls.
+     *
+     * @var array
      */
     protected $_defaultConfig = [
-        'base' => null
+        'base' => null,
+        'urlPrefix' => null,
     ];
 
     /**
@@ -71,12 +77,13 @@ class ImageHelper extends Helper
     public function url($image, $preset = null)
     {
         $path = $this->_basePath($image);
+        $urlPrefix = $this->getConfig('urlPrefix');
 
         if (!empty($preset)) {
             $path .= $preset . '_';
         }
 
-        return $path . $image->filename;
+        return $urlPrefix . $path . $image->filename;
     }
 
     /**
@@ -90,17 +97,17 @@ class ImageHelper extends Helper
             return $this->paths[$image->model];
         }
 
-        $basePath = $this->config('base');
-        $table = TableRegistry::get($image->model);
+        $basePath = $this->getConfig('base');
+        $table = TableRegistry::getTableLocator()->get($image->model);
 
         if ($table->hasBehavior('Image')) {
-            $model = $table->alias();
+            $model = $table->getAlias();
             $basePath = $table->behaviors()->Image->config('path');
             $basePath = str_replace(WWW_ROOT, '/', $basePath);
             $basePath = str_replace('\\', '/', $basePath); // replace backward slashes with forward
             $basePath = preg_replace('/\/+/', '/', $basePath); // convert multiple slashes into single
 
-            $basePath = $this->paths[$image->model] = $basePath . '/' . $table->alias() . '/';
+            $basePath = $this->paths[$image->model] = $basePath . '/' . $table->getAlias() . '/';
         }
 
         return $basePath;

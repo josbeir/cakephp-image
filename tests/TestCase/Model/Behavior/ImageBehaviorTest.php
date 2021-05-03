@@ -17,7 +17,7 @@ class ImageBehaviorTest extends TestCase
 
     public $fixtures = [
         'core.articles',
-        'plugin.image.images'
+        'plugin.image.images',
     ];
 
     public function tearDown()
@@ -37,8 +37,8 @@ class ImageBehaviorTest extends TestCase
         $table = TableRegistry::get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
-                'image' => 'one'
-            ]
+                'image' => 'one',
+            ],
         ]);
 
         $result = $table->find()
@@ -59,8 +59,8 @@ class ImageBehaviorTest extends TestCase
                 'foreign_key' => 1,
                 'filename' => 'test1.jpg',
                 'size' => 100,
-                'mime' => 'image/jpg'
-            ]
+                'mime' => 'image/jpg',
+            ],
         ];
 
         $this->assertSame($expected, $result);
@@ -75,8 +75,8 @@ class ImageBehaviorTest extends TestCase
         $table = TableRegistry::get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
-                'images' => 'many'
-            ]
+                'images' => 'many',
+            ],
         ]);
 
         $result = $table->find()
@@ -98,7 +98,7 @@ class ImageBehaviorTest extends TestCase
                     'foreign_key' => 1,
                     'filename' => 'test2.jpg',
                     'size' => 100,
-                    'mime' => 'image/jpg'
+                    'mime' => 'image/jpg',
                 ],
                 1 => [
                     'id' => 3,
@@ -108,7 +108,7 @@ class ImageBehaviorTest extends TestCase
                     'foreign_key' => 1,
                     'filename' => 'test3.jpg',
                     'size' => 100,
-                    'mime' => 'image/jpg'
+                    'mime' => 'image/jpg',
                 ],
                 2 => [
                     'id' => 4,
@@ -118,9 +118,9 @@ class ImageBehaviorTest extends TestCase
                     'foreign_key' => 1,
                     'filename' => 'test4.jpg',
                     'size' => 100,
-                    'mime' => 'image/jpg'
-                ]
-            ]
+                    'mime' => 'image/jpg',
+                ],
+            ],
         ];
 
         $this->assertSame($expected, $result);
@@ -137,14 +137,14 @@ class ImageBehaviorTest extends TestCase
         $table->addBehavior('Image.Image', [
             'path' => TMP . 'tests' . DS . 'image',
             'fields' => [
-                'image' => 'one'
-            ]
+                'image' => 'one',
+            ],
         ]);
 
         $item = $table->find()->first();
         $item->set('image', [
             'name' => 'test.png',
-            'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png'
+            'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png',
         ]);
 
         $table->save($item);
@@ -159,7 +159,7 @@ class ImageBehaviorTest extends TestCase
             'foreign_key' => 1,
             'filename' => 'df047416c612a9f13a3565ea6f0c38f6.png',
             'size' => 132137,
-            'mime' => 'image/png'
+            'mime' => 'image/png',
         ];
 
         $this->assertEquals(1, $item->get('id'));
@@ -176,8 +176,8 @@ class ImageBehaviorTest extends TestCase
         $table->addBehavior('Image.Image', [
             'path' => TMP . 'tests' . DS . 'image',
             'fields' => [
-                'image' => 'one'
-            ]
+                'image' => 'one',
+            ],
         ]);
 
         $item = $table->find()->first();
@@ -195,7 +195,7 @@ class ImageBehaviorTest extends TestCase
             'foreign_key' => 1,
             'filename' => 'df047416c612a9f13a3565ea6f0c38f6.png',
             'size' => 132137,
-            'mime' => 'image/png'
+            'mime' => 'image/png',
         ];
 
         $this->assertEquals(1, $item->get('id'));
@@ -214,24 +214,24 @@ class ImageBehaviorTest extends TestCase
         $table->addBehavior('Image.Image', [
             'path' => TMP . 'tests' . DS . 'image',
             'fields' => [
-                'images' => 'many'
-            ]
+                'images' => 'many',
+            ],
         ]);
 
         $item = $table->find()->first();
         $item->set('images', [
             0 => [
                 'name' => 'test.png',
-                'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png'
+                'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'shoes.png',
             ],
             1 => [
                 'name' => 'simpsons.png',
-                'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'simpsons.png'
+                'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'simpsons.png',
             ],
             2 => [
                 'name' => 'gucci.png',
-                'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'gucci.png'
-            ]
+                'tmp_name' => Plugin::path('Image') . 'tests' . DS . 'assets' . DS . 'gucci.png',
+            ],
         ]);
 
         $table->save($item);
@@ -254,7 +254,7 @@ class ImageBehaviorTest extends TestCase
                     'foreign_key' => 1,
                     'filename' => 'df047416c612a9f13a3565ea6f0c38f6.png',
                     'size' => 132137,
-                    'mime' => 'image/png'
+                    'mime' => 'image/png',
                 ],
                 1 => [
                     'id' => 3,
@@ -264,7 +264,7 @@ class ImageBehaviorTest extends TestCase
                     'foreign_key' => 1,
                     'filename' => 'fba1943f40ec92eddd81e0688a255a43.png',
                     'size' => 33628,
-                    'mime' => 'image/png'
+                    'mime' => 'image/png',
                 ],
                 2 => [
                     'id' => 4,
@@ -274,9 +274,9 @@ class ImageBehaviorTest extends TestCase
                     'foreign_key' => 1,
                     'filename' => '0409095d5904edde1065f313018d7518.png',
                     'size' => 119448,
-                    'mime' => 'image/png'
-                ]
-            ]
+                    'mime' => 'image/png',
+                ],
+            ],
         ];
 
         $this->assertSame($expected, $item);
@@ -287,8 +287,8 @@ class ImageBehaviorTest extends TestCase
         $table = TableRegistry::get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
-                'image' => 'one'
-            ]
+                'image' => 'one',
+            ],
         ]);
 
         $record = $table->find()->first()->image;
@@ -308,8 +308,8 @@ class ImageBehaviorTest extends TestCase
         $table = TableRegistry::get('Articles');
         $table->addBehavior('Image.Image', [
             'fields' => [
-                'image' => 'one'
-            ]
+                'image' => 'one',
+            ],
         ]);
 
         $table = $table->imagesTable();

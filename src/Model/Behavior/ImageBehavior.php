@@ -44,8 +44,8 @@ class ImageBehavior extends Behavior
         'path' => null,
         'table' => 'images',
         'manager' => [
-            'driver' => 'imagick'
-        ]
+            'driver' => 'imagick',
+        ],
     ];
 
     /**
@@ -57,7 +57,7 @@ class ImageBehavior extends Behavior
         'image/jpg',
         'image/jpeg',
         'image/gif',
-        'image/png'
+        'image/png',
     ];
 
     /**
@@ -68,7 +68,7 @@ class ImageBehavior extends Behavior
      */
     public function initialize(array $config)
     {
-        $this->_imagesTable = TableRegistry::get($this->getConfig('table'));
+        $this->_imagesTable = TableRegistry::getTableLocator()->get($this->getConfig('table'));
 
         $this->_setupAssociations(
             $this->_config['table'],
@@ -91,15 +91,16 @@ class ImageBehavior extends Behavior
         foreach ($fields as $field => $type) {
             $assocType = $type == 'many' ? 'hasMany' : 'hasOne';
             $name = $this->_fieldName($field);
+            $locator = TableRegistry::getTableLocator();
 
-            if (!TableRegistry::exists($name)) {
-                $fieldTable = TableRegistry::get($name, [
+            if (!$locator->exists($name)) {
+                $fieldTable = $locator->get($name, [
                     'className' => $table,
                     'alias' => $name,
-                    'table' => $this->_imagesTable->getTable()
+                    'table' => $this->_imagesTable->getTable(),
                 ]);
             } else {
-                $fieldTable = TableRegistry::get($name);
+                $fieldTable = $locator->get($name);
             }
 
             $this->_table->{$assocType}($name, [
@@ -108,12 +109,12 @@ class ImageBehavior extends Behavior
                 'joinType' => 'LEFT',
                 'propertyName' => $this->_fieldName($field, false),
                 'order' => [
-                    $name . '.field_index' => 'ASC'
+                    $name . '.field_index' => 'ASC',
                 ],
                 'conditions' => [
                     $name . '.model' => $alias,
                     $name . '.field' => $field,
-                ]
+                ],
             ]);
         }
 
@@ -123,8 +124,8 @@ class ImageBehavior extends Behavior
             'propertyName' => '_images',
             'dependent' => false,
             'conditions' => [
-                $table . '.model' => $alias
-            ]
+                $table . '.model' => $alias,
+            ],
         ]);
     }
 
@@ -245,7 +246,7 @@ class ImageBehavior extends Behavior
             $data = [
                 'filename' => $fileName,
                 'size' => $file->size(),
-                'mime' => $file->mime()
+                'mime' => $file->mime(),
             ];
         }
 
@@ -346,7 +347,7 @@ class ImageBehavior extends Behavior
                     $uploadedImages[$index] = $uploadeImage + [
                         'field_index' => $index,
                         'model' => $alias,
-                        'field' => $_fieldName
+                        'field' => $_fieldName,
                     ];
                 }
             }
@@ -358,7 +359,7 @@ class ImageBehavior extends Behavior
                         ->where([
                             'model' => $alias,
                             'field' => $_fieldName,
-                            'foreign_key' => $entity->{$this->_table->getPrimaryKey()}
+                            'foreign_key' => $entity->{$this->_table->getPrimaryKey()},
                         ])
                         ->order(['field_index' => 'ASC' ]);
 
@@ -445,7 +446,7 @@ class ImageBehavior extends Behavior
                 'id !=' => $imageEntity->id,
                 'field_index !=' => $imageEntity->field_index,
                 'model' => $imageEntity->model,
-                'filename' => $imageEntity->filename
+                'filename' => $imageEntity->filename,
             ]);
 
         if (!$shared->count()) {
